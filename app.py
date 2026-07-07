@@ -3,6 +3,7 @@ import json
 import streamlit as st
 from dotenv import load_dotenv
 
+from data_sources.universe import build_universe
 from llm.model import get_llm
 from llm.prompts import get_final_explanation_prompt, get_next_question_prompt
 from logic.allocation import build_allocation
@@ -142,8 +143,14 @@ load_dotenv()
 st.set_page_config(page_title="Robo-Advisor Chatbot", layout="centered")
 st.title("Robo-Advisor Chatbot Prototype")
 
-with open("data/options.json", encoding="utf-8") as f:
-    options = json.load(f)
+
+@st.cache_data(ttl=3600, show_spinner="Loading live market data...")
+def load_investment_universe():
+    """ETF universe enriched with live risk metrics. Cached for an hour."""
+    return build_universe()
+
+
+options = load_investment_universe()
 
 init_chat_state()
 ensure_initial_message()
