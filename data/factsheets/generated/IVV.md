@@ -16,9 +16,9 @@ The total expense ratio (TER) is 0.03% per year. Costs are deducted from the fun
 ## Risk profile (computed from 5-year price history)
 
 - Annualized volatility: 17.0%
-- Annualized return: 13.3%
+- Annualized return: 13.0%
 - Maximum drawdown: -24.5%
-- Sharpe ratio: 0.82
+- Sharpe ratio: 0.80
 
 Over the last five years the fund's volatility was high - investors must tolerate large temporary swings. In the worst stretch of that period an investor would have seen a temporary loss of 24.5% from peak to trough.
 

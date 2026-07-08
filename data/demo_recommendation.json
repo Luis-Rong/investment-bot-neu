@@ -15,42 +15,42 @@
       {
         "id": "EQ_US",
         "name": "iShares Core S&P 500 ETF",
-        "percentage": 35
+        "percentage": 34
       },
       {
-        "id": "EQ_DEV",
-        "name": "Vanguard Developed Markets ETF",
+        "id": "EQ_VALUE",
+        "name": "Vanguard Value ETF",
         "percentage": 33
       },
       {
-        "id": "EQ_WORLD",
-        "name": "iShares MSCI World ETF",
-        "percentage": 32
+        "id": "EQ_DEV",
+        "name": "Vanguard FTSE Developed Markets ETF",
+        "percentage": 33
       }
     ],
     "contributions": {
       "one_time_eur": 10000,
       "monthly_plan_eur": 500
     },
-    "explanation": "To help you reach your retirement goal over the next 30 years, we have designed a diversified portfolio consisting entirely of equity ETFs. This portfolio invests in the iShares Core S&P 500 ETF [1], the Vanguard Developed Markets ETF [2], and the iShares MSCI World ETF [3]. These funds focus on company profits and historically offer the highest long-term returns, though their value can fluctuate in the short term [1, 2, 3]. To get started, you may consider an initial investment of 10,000 EUR supplemented by a monthly savings plan of 500 EUR. All selected funds have costs deducted automatically from their assets, allowing more of the market return to stay with you [1, 2, 3]. If you would like a different balance of risk and potential return, please let us know so we can adjust the portfolio for you.",
+    "explanation": "To help you work toward your retirement goal over the next 30 years, we have designed a portfolio focused on long-term growth. This portfolio consists entirely of stock ETFs [1, 2, 3], which are designed to participate in company profits and offer the highest potential returns over long periods, though their value may fluctuate in the short term [1, 2, 3]. By investing in a mix of the iShares Core S&P 500 ETF [1], the Vanguard Value ETF [2], and the Vanguard FTSE Developed Markets ETF [3], you gain broad exposure to established companies across the U.S. and international markets. All three funds are selected for their very low costs, which helps keep more of the market returns in your account [1, 2, 3]. To get your strategy moving, we suggest using your 10,000 EUR as a starting anchor, complemented by your monthly contribution of 500 EUR. If you feel this approach is too aggressive or conservative for your comfort, please let us know and we can easily adjust your risk level.",
     "sources": [
       {
-        "text": "# iShares Core S&P 500 ETF (IVV)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\niShares Core S&P 500 ETF trades under the ticker IVV in the category 'Large Blend'.\nFund size: 888.1 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.03% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 17.0%\n- Annualized return: 13.3%\n- Maximum drawdown: -24.5%\n- Sharpe ratio: 0.82",
+        "text": "# iShares Core S&P 500 ETF (IVV)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\niShares Core S&P 500 ETF trades under the ticker IVV in the category 'Large Blend'.\nFund size: 888.1 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.03% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 17.0%\n- Annualized return: 13.0%\n- Maximum drawdown: -24.5%\n- Sharpe ratio: 0.80",
         "source": "IVV.md",
         "ticker": "IVV",
-        "score": 0.5476809144020081
+        "score": 0.548626184463501
       },
       {
-        "text": "# Vanguard FTSE Developed Markets Index Fund ETF Shares (VEA)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\nVanguard FTSE Developed Markets Index Fund ETF Shares trades under the ticker VEA in the category 'Foreign Large Blend'.\nFund size: 316.3 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.03% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 16.8%\n- Annualized return: 10.2%\n- Maximum drawdown: -29.7%\n- Sharpe ratio: 0.66",
+        "text": "# Vanguard Value Index Fund ETF Shares (VTV)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\nVanguard Value Index Fund ETF Shares trades under the ticker VTV in the category 'Large Value'.\nFund size: 254.5 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.04% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 13.9%\n- Annualized return: 12.2%\n- Maximum drawdown: -17.0%\n- Sharpe ratio: 0.90",
+        "source": "VTV.md",
+        "ticker": "VTV",
+        "score": 0.7422739863395691
+      },
+      {
+        "text": "# Vanguard FTSE Developed Markets Index Fund ETF Shares (VEA)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\nVanguard FTSE Developed Markets Index Fund ETF Shares trades under the ticker VEA in the category 'Foreign Large Blend'.\nFund size: 316.3 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.03% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 16.8%\n- Annualized return: 9.7%\n- Maximum drawdown: -29.7%\n- Sharpe ratio: 0.64",
         "source": "VEA.md",
         "ticker": "VEA",
-        "score": 0.8086876273155212
-      },
-      {
-        "text": "# iShares MSCI World ETF (URTH)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\niShares MSCI World ETF trades under the ticker URTH in the category 'Global Large-Stock Blend'.\nFund size: 8.1 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.24% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 16.3%\n- Annualized return: 11.7%\n- Maximum drawdown: -26.1%\n- Sharpe ratio: 0.76",
-        "source": "URTH.md",
-        "ticker": "URTH",
-        "score": 0.586880087852478
+        "score": 0.6188033819198608
       }
     ],
     "missing_fields_at_finish": []

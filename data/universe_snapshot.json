@@ -3,19 +3,6 @@
   "period": "5y",
   "options": [
     {
-      "id": "EQ_WORLD",
-      "name": "iShares MSCI World ETF",
-      "ticker": "URTH",
-      "asset_class": "equity",
-      "esg": false,
-      "ter": 0.24,
-      "horizon_min": 7,
-      "volatility": 0.16303052724618808,
-      "annual_return": 0.11620862189400549,
-      "max_drawdown": -0.26054701056844565,
-      "sharpe": 0.7563670657707662
-    },
-    {
       "id": "EQ_US",
       "name": "iShares Core S&P 500 ETF",
       "ticker": "IVV",
@@ -23,36 +10,166 @@
       "esg": false,
       "ter": 0.03,
       "horizon_min": 5,
-      "volatility": 0.17005428752726673,
-      "annual_return": 0.1322491066352398,
-      "max_drawdown": -0.2452758497940709,
-      "sharpe": 0.8160209700424986
+      "volatility": 0.1700616933324912,
+      "annual_return": 0.12998531563850624,
+      "max_drawdown": -0.2452760364691977,
+      "sharpe": 0.8042092345758945
+    },
+    {
+      "id": "EQ_WORLD",
+      "name": "iShares MSCI World ETF",
+      "ticker": "URTH",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.24,
+      "horizon_min": 7,
+      "volatility": 0.16298992259213038,
+      "annual_return": 0.1133937734894257,
+      "max_drawdown": -0.260547264559292,
+      "sharpe": 0.7410046356877407
     },
     {
       "id": "EQ_DEV",
-      "name": "Vanguard Developed Markets ETF",
+      "name": "Vanguard FTSE Developed Markets ETF",
       "ticker": "VEA",
       "asset_class": "equity",
       "esg": false,
       "ter": 0.03,
       "horizon_min": 5,
-      "volatility": 0.16794544937431422,
-      "annual_return": 0.10021535146416172,
-      "max_drawdown": -0.29710521488251085,
-      "sharpe": 0.6530275568267464
+      "volatility": 0.16782964856242855,
+      "annual_return": 0.09685059580489441,
+      "max_drawdown": -0.2971052734932147,
+      "sharpe": 0.6350916806589902
     },
     {
       "id": "EQ_EM",
-      "name": "iShares MSCI Emerging Markets ETF",
-      "ticker": "EEM",
+      "name": "Vanguard FTSE Emerging Markets ETF",
+      "ticker": "VWO",
       "asset_class": "equity",
       "esg": false,
-      "ter": 0.68,
+      "ter": 0.08,
       "horizon_min": 7,
-      "volatility": 0.19654143811159916,
-      "annual_return": 0.0715361089522002,
-      "max_drawdown": -0.35702781291174057,
-      "sharpe": 0.4499694547397901
+      "volatility": 0.17576353702377184,
+      "annual_return": 0.05500264093906737,
+      "max_drawdown": -0.3090289699996699,
+      "sharpe": 0.39256891423276635
+    },
+    {
+      "id": "EQ_EU",
+      "name": "Vanguard FTSE Europe ETF",
+      "ticker": "VGK",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.11,
+      "horizon_min": 7,
+      "volatility": 0.1797979567240946,
+      "annual_return": 0.08918088730572737,
+      "max_drawdown": -0.32739055016481733,
+      "sharpe": 0.5652784296965472
+    },
+    {
+      "id": "EQ_NASDAQ",
+      "name": "Invesco QQQ Trust (Nasdaq-100)",
+      "ticker": "QQQ",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.2,
+      "horizon_min": 7,
+      "volatility": 0.2278077506998692,
+      "annual_return": 0.15297539063134868,
+      "max_drawdown": -0.3511872773233017,
+      "sharpe": 0.7391601894829681
+    },
+    {
+      "id": "EQ_GROWTH",
+      "name": "Vanguard Growth ETF",
+      "ticker": "VUG",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.04,
+      "horizon_min": 7,
+      "volatility": 0.2243637257856688,
+      "annual_return": 0.12663046350990204,
+      "max_drawdown": -0.356129754594521,
+      "sharpe": 0.6438791859906432
+    },
+    {
+      "id": "EQ_VALUE",
+      "name": "Vanguard Value ETF",
+      "ticker": "VTV",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.04,
+      "horizon_min": 5,
+      "volatility": 0.1386567943882561,
+      "annual_return": 0.12164079966359664,
+      "max_drawdown": -0.1703899097965107,
+      "sharpe": 0.8980402079851224
+    },
+    {
+      "id": "EQ_SMALL",
+      "name": "iShares Core S&P Small-Cap ETF",
+      "ticker": "IJR",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.06,
+      "horizon_min": 7,
+      "volatility": 0.2137163528185809,
+      "annual_return": 0.06903967495108843,
+      "max_drawdown": -0.2802412455958393,
+      "sharpe": 0.4192550069245337
+    },
+    {
+      "id": "EQ_DIV",
+      "name": "Schwab U.S. Dividend Equity ETF",
+      "ticker": "SCHD",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.06,
+      "horizon_min": 5,
+      "volatility": 0.1436635916586468,
+      "annual_return": 0.08846483585645681,
+      "max_drawdown": -0.16844313015021117,
+      "sharpe": 0.6623959525723683
+    },
+    {
+      "id": "SEC_TECH",
+      "name": "Vanguard Information Technology ETF",
+      "ticker": "VGT",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.09,
+      "horizon_min": 7,
+      "volatility": 0.2566340231480332,
+      "annual_return": 0.1868063680162122,
+      "max_drawdown": -0.35074053817442175,
+      "sharpe": 0.7960779551323568
+    },
+    {
+      "id": "SEC_HEALTH",
+      "name": "Health Care Select Sector SPDR Fund",
+      "ticker": "XLV",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.09,
+      "horizon_min": 5,
+      "volatility": 0.149346188131125,
+      "annual_return": 0.06490054808534729,
+      "max_drawdown": -0.17108993860191013,
+      "sharpe": 0.49610337097351737
+    },
+    {
+      "id": "SEC_ENERGY",
+      "name": "Energy Select Sector SPDR Fund",
+      "ticker": "XLE",
+      "asset_class": "equity",
+      "esg": false,
+      "ter": 0.09,
+      "horizon_min": 5,
+      "volatility": 0.2591705508673184,
+      "annual_return": 0.20443899397895082,
+      "max_drawdown": -0.26043728593054094,
+      "sharpe": 0.8486508081271912
     },
     {
       "id": "EQ_ESG_US",
@@ -62,10 +179,10 @@
       "esg": true,
       "ter": 0.09,
       "horizon_min": 5,
-      "volatility": 0.18494170599019197,
-      "annual_return": 0.11712986707703665,
-      "max_drawdown": -0.2881128827470507,
-      "sharpe": 0.6917926758709573
+      "volatility": 0.18495158170312967,
+      "annual_return": 0.11491264546891822,
+      "max_drawdown": -0.2881129928595565,
+      "sharpe": 0.6810104452147493
     },
     {
       "id": "EQ_ESG_DEV",
@@ -75,10 +192,10 @@
       "esg": true,
       "ter": 0.2,
       "horizon_min": 5,
-      "volatility": 0.16732492569076537,
-      "annual_return": 0.08807114895118784,
+      "volatility": 0.16720636469289435,
+      "annual_return": 0.08450493592847397,
       "max_drawdown": -0.3003091569757873,
-      "sharpe": 0.5884088472076578
+      "sharpe": 0.5690525049718108
     },
     {
       "id": "BOND_AGG",
@@ -88,10 +205,10 @@
       "esg": false,
       "ter": 0.03,
       "horizon_min": 2,
-      "volatility": 0.061054954078933375,
-      "annual_return": -0.002522237229129032,
-      "max_drawdown": -0.1782172335303751,
-      "sharpe": -0.010897597478389153
+      "volatility": 0.06106293230010129,
+      "annual_return": -0.0019177653064264,
+      "max_drawdown": -0.17821712994372374,
+      "sharpe": -0.0009591959708864559
     },
     {
       "id": "BOND_CORP",
@@ -101,23 +218,62 @@
       "esg": false,
       "ter": 0.14,
       "horizon_min": 3,
-      "volatility": 0.08654503714063014,
-      "annual_return": -0.007563153214774854,
-      "max_drawdown": -0.24954880373410337,
-      "sharpe": -0.04455690914853149
+      "volatility": 0.08655925427319348,
+      "annual_return": -0.006736698593716173,
+      "max_drawdown": -0.24954927710924013,
+      "sharpe": -0.03491137940929078
     },
     {
-      "id": "BOND_TREAS",
+      "id": "BOND_TREAS_LONG",
       "name": "iShares 20+ Year Treasury Bond ETF",
       "ticker": "TLT",
       "asset_class": "bond",
       "esg": false,
       "ter": 0.15,
       "horizon_min": 5,
-      "volatility": 0.15813137192305013,
-      "annual_return": -0.07694348353360381,
-      "max_drawdown": -0.4369650552703652,
-      "sharpe": -0.42762449053193596
+      "volatility": 0.1580742604762811,
+      "annual_return": -0.07445988306483253,
+      "max_drawdown": -0.4369650479514189,
+      "sharpe": -0.41083006460844285
+    },
+    {
+      "id": "BOND_TREAS_SHORT",
+      "name": "iShares 1-3 Year Treasury Bond ETF",
+      "ticker": "SHY",
+      "asset_class": "bond",
+      "esg": false,
+      "ter": 0.15,
+      "horizon_min": 1,
+      "volatility": 0.02003384973827833,
+      "annual_return": 0.017023072216187485,
+      "max_drawdown": -0.057070852585606735,
+      "sharpe": 0.853268438679499
+    },
+    {
+      "id": "BOND_TIPS",
+      "name": "iShares TIPS Bond ETF",
+      "ticker": "TIP",
+      "asset_class": "bond",
+      "esg": false,
+      "ter": 0.19,
+      "horizon_min": 3,
+      "volatility": 0.0622717599726771,
+      "annual_return": 0.004188587072940342,
+      "max_drawdown": -0.14509265450724684,
+      "sharpe": 0.09827756889726935
+    },
+    {
+      "id": "BOND_HY",
+      "name": "iShares iBoxx High Yield Corporate Bond ETF",
+      "ticker": "HYG",
+      "asset_class": "bond",
+      "esg": false,
+      "ter": 0.49,
+      "horizon_min": 3,
+      "volatility": 0.07545686881009311,
+      "annual_return": 0.035299003347766256,
+      "max_drawdown": -0.15790232375926205,
+      "sharpe": 0.4978264470438187
     },
     {
       "id": "BOND_ESG",
@@ -127,10 +283,10 @@
       "esg": true,
       "ter": 0.1,
       "horizon_min": 2,
-      "volatility": 0.060403051404322346,
-      "annual_return": -0.0034596786929177448,
-      "max_drawdown": -0.1797366407545291,
-      "sharpe": -0.027246485293040728
+      "volatility": 0.060412445187574396,
+      "annual_return": -0.0028771087577460497,
+      "max_drawdown": -0.17973661224066317,
+      "sharpe": -0.01755142119351764
     },
     {
       "id": "REAL_EST",
@@ -140,10 +296,23 @@
       "esg": false,
       "ter": 0.13,
       "horizon_min": 5,
-      "volatility": 0.1891320886669741,
-      "annual_return": 0.026063759701964617,
-      "max_drawdown": -0.34478494038504837,
-      "sharpe": 0.2306378654172142
+      "volatility": 0.1890876236764941,
+      "annual_return": 0.02246139508377243,
+      "max_drawdown": -0.34478518797523483,
+      "sharpe": 0.2120315793367433
+    },
+    {
+      "id": "REAL_EST_INTL",
+      "name": "Vanguard Global ex-U.S. Real Estate ETF",
+      "ticker": "VNQI",
+      "asset_class": "real_assets",
+      "esg": false,
+      "ter": 0.12,
+      "horizon_min": 7,
+      "volatility": 0.1555856062366467,
+      "annual_return": -0.014925791906748476,
+      "max_drawdown": -0.34919862941525204,
+      "sharpe": -0.01910099818392034
     },
     {
       "id": "GOLD",
@@ -153,10 +322,10 @@
       "esg": false,
       "ter": 0.4,
       "horizon_min": 3,
-      "volatility": 0.18345043840314196,
-      "annual_return": 0.1742984429505372,
+      "volatility": 0.18354268450325253,
+      "annual_return": 0.17301893372506072,
       "max_drawdown": -0.2621092600696471,
-      "sharpe": 0.9689568329210759
+      "sharpe": 0.9626144447426883
     }
   ]
 }

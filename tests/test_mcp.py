@@ -36,7 +36,7 @@ def test_all_expected_tools_registered():
 
 def test_list_universe_returns_static_metadata():
     universe = server.list_universe()
-    assert len(universe) == 12
+    assert len(universe) == 25
     assert all("ticker" in opt for opt in universe)
 
 

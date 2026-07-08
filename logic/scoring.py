@@ -8,11 +8,12 @@ and unit-testable.
 Scoring philosophy (three parts, weighted):
 
 1. **Risk fit** — the user's 1..10 risk appetite maps to a target volatility.
-   We penalise a fund for *exceeding* that tolerance, but not for being calmer
-   than it. (An earlier version scored by raw closeness to the target, which —
-   because no fund in the universe reaches the top of the range — simply handed
-   aggressive users the single most volatile asset, e.g. a low-return REIT,
-   regardless of whether it actually paid for that risk.)
+   A fund scores highest near that target, penalised for missing it
+   *asymmetrically*: overshooting the tolerance is punished hard, undershooting
+   only mildly. (Scoring by raw closeness handed aggressive users the single most
+   volatile asset, e.g. a low-return REIT; penalising overshoot only then let a
+   near-cash fund with a flattering Sharpe crowd into a 30-year portfolio. The
+   asymmetric penalty avoids both.)
 2. **Return quality** — risk-adjusted return (Sharpe). This is what now favours
    higher-returning assets *within* the risk tolerance, so "I want high returns"
    surfaces strong equities, not just anything volatile.
@@ -35,9 +36,13 @@ W_RISK_FIT = 0.5
 W_QUALITY = 0.25
 W_FEE = 0.25
 
-# Penalty (score points per unit of volatility) for exceeding the risk target.
-# Steep on purpose: blowing past the user's stated tolerance is the real harm.
+# Penalty (score points per unit of volatility) for missing the risk target.
+# Asymmetric: exceeding the user's tolerance is the real harm (steep), but sitting
+# far *below* it is also wrong — it's how a near-cash fund with a flattering
+# Sharpe would otherwise sneak into an aggressive, 30-year portfolio. The mild
+# under-penalty pulls each profile toward assets that actually fit its horizon.
 OVER_VOL_PENALTY = 80.0
+UNDER_VOL_PENALTY = 20.0
 # Sharpe ratio at which the quality score saturates to 10/10.
 SHARPE_FULL_MARKS = 1.25
 # Points removed from ESG-badged funds when the user hasn't asked for ESG, so an
@@ -52,9 +57,12 @@ def risk_to_target_volatility(risk: int) -> float:
 
 
 def _risk_fit_score(option_vol: float, target_vol: float) -> float:
-    """0..10; full marks at or below the tolerance, dropping as vol exceeds it."""
-    excess = max(0.0, option_vol - target_vol)
-    return max(0.0, 10.0 - excess * OVER_VOL_PENALTY)
+    """0..10; highest near the target, penalised more for over- than undershoot."""
+    if option_vol > target_vol:
+        penalty = (option_vol - target_vol) * OVER_VOL_PENALTY
+    else:
+        penalty = (target_vol - option_vol) * UNDER_VOL_PENALTY
+    return max(0.0, 10.0 - penalty)
 
 
 def _quality_score(sharpe: float | None) -> float:
