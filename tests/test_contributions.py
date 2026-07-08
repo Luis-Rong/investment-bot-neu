@@ -7,21 +7,19 @@ def test_no_savings_returns_zero():
 
 
 def test_small_lump_sum_invested_fully():
-    # Below the 500 EUR threshold: invest everything, no buffer.
     result = compute_contributions(300, 0)
     assert result["one_time_eur"] == 300
 
 
-def test_large_lump_sum_keeps_buffer():
-    # 1000 EUR: 10% buffer = 100 EUR -> invest 900.
+def test_large_lump_sum_invested_fully():
+    # The lump sum is already earmarked for investing -> invest all of it.
     result = compute_contributions(1000, 0)
-    assert result["one_time_eur"] == 900
+    assert result["one_time_eur"] == 1000
 
 
-def test_buffer_capped_at_1000():
-    # 20000 EUR: 10% would be 2000, but the buffer is capped at 1000.
+def test_very_large_lump_sum_invested_fully():
     result = compute_contributions(20000, 0)
-    assert result["one_time_eur"] == 19000
+    assert result["one_time_eur"] == 20000
 
 
 def test_monthly_plan_passed_through():

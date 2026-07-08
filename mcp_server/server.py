@@ -102,8 +102,8 @@ def target_volatility(risk: int) -> float:
 
 @mcp.tool()
 def plan_contributions(saving_eur: int, monthly_saving_eur: int) -> dict[str, Any]:
-    """Turn a one-time lump sum and a monthly saving amount into a realistic
-    contribution plan (keeps a small cash buffer on larger lump sums)."""
+    """Turn a one-time lump sum and a monthly saving amount into a contribution
+    plan. The lump sum (already earmarked for investing) is invested in full."""
     return compute_contributions(saving_eur, monthly_saving_eur)
 
 

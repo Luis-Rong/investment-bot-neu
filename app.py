@@ -82,15 +82,23 @@ if user_text:
         )
         st.rerun()
 
-    advisor = build_advisor_graph(get_llm(model=active_model, api_key=active_key))
-    with st.spinner("Thinking..."):
-        result = advisor.invoke(
-            {
-                "messages": st.session_state.messages,
-                "options": options,
-                "recommendation": st.session_state.recommendation,
-            }
-        )
+    # Echo the just-sent message immediately (the history above already rendered),
+    # so it appears the instant you hit send instead of only once the reply loads.
+    with st.chat_message("user", avatar="ui/assets/user.png"):
+        st.write(user_text)
+
+    # Stream the reply into its own bubble: spinner first, answer when it lands.
+    with st.chat_message("assistant", avatar="ui/assets/bot.png"):
+        with st.spinner("Thinking..."):
+            advisor = build_advisor_graph(get_llm(model=active_model, api_key=active_key))
+            result = advisor.invoke(
+                {
+                    "messages": st.session_state.messages,
+                    "options": options,
+                    "recommendation": st.session_state.recommendation,
+                }
+            )
+        st.write(result.get("assistant_message", "..."))
 
     # Debug: keep the raw profile extraction around for the developer view.
     if result.get("profile_raw"):

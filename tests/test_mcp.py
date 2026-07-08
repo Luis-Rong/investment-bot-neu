@@ -46,9 +46,9 @@ def test_target_volatility_within_bounds():
     assert server.target_volatility(1) < server.target_volatility(10)
 
 
-def test_plan_contributions_keeps_buffer_on_large_lump_sum():
+def test_plan_contributions_invests_full_lump_sum():
     plan = server.plan_contributions(10000, 200)
-    assert plan == {"one_time_eur": 9000, "monthly_plan_eur": 200}
+    assert plan == {"one_time_eur": 10000, "monthly_plan_eur": 200}
 
 
 def test_get_prices_happy_path(monkeypatch):
