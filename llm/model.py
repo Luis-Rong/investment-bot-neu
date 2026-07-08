@@ -26,3 +26,28 @@ def get_llm(temperature: float = 0.3):
     """Return a chat model for the provider/model in `LLM_MODEL` (or the default)."""
     model = os.getenv("LLM_MODEL", DEFAULT_MODEL)
     return init_chat_model(model, temperature=temperature)
+
+
+def response_text(resp) -> str:
+    """Plain text from a chat-model response, robust across content shapes.
+
+    Content-block-aware models (e.g. Gemini 3.x) return `.content` as a list of
+    block dicts (`[{"type": "text", "text": "..."}]`) instead of a flat string;
+    LangChain's `AIMessage.text` property normalizes that. Plain test doubles
+    that only set a string `.content` (no `.text` attribute) predate that
+    convention, so fall back to `.content` for those — keeps stubs unchanged.
+    """
+    text = getattr(resp, "text", None)
+    if text is not None:
+        return str(text).strip()
+    content = resp.content
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        parts = [
+            block.get("text", "")
+            for block in content
+            if isinstance(block, dict) and block.get("type") == "text"
+        ]
+        return "".join(parts).strip()
+    return str(content).strip()

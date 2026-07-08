@@ -40,6 +40,7 @@ from langgraph.graph import END, START, StateGraph
 
 from agent.state import AdvisorState
 from agent.tools import plan_contributions, score_and_allocate
+from llm.model import response_text
 from llm.prompts import (
     PROFILE_EXTRACTION_SYSTEM,
     get_critique_prompt,
@@ -187,7 +188,7 @@ def extract_profile(llm, messages: list[dict[str, str]]) -> dict:
             {"role": "user", "content": transcript},
         ]
     )
-    raw = resp.content.strip()
+    raw = response_text(resp)
     data = _parse_json_object(raw)
     profile = UserProfile(**data) if data else UserProfile()
     return {
@@ -225,7 +226,7 @@ def build_advisor_graph(llm):
         resp = llm.invoke(
             prompt.format(missing_fields=", ".join(missing), history=_history(state["messages"]))
         )
-        choice = resp.content.strip().upper()
+        choice = response_text(resp).upper()
         return {"route": "answer_directly" if choice.startswith("ANSWER") else "ask_question"}
 
     def ask_question_node(state: AdvisorState) -> dict:
@@ -237,7 +238,7 @@ def build_advisor_graph(llm):
                 missing_fields=", ".join(missing) if missing else "none",
             )
         )
-        text = resp.content.strip()
+        text = response_text(resp)
         # Safety net: model shouldn't say READY while fields are missing.
         if text == "READY_FOR_RECOMMENDATION" and missing:
             text = _FIELD_QUESTIONS.get(
@@ -248,7 +249,7 @@ def build_advisor_graph(llm):
     def answer_directly_node(state: AdvisorState) -> dict:
         prompt = get_direct_answer_prompt()
         resp = llm.invoke(prompt.format(history=_history(state["messages"])))
-        return {"assistant_message": resp.content.strip()}
+        return {"assistant_message": response_text(resp)}
 
     def adjust_risk_node(state: AdvisorState) -> dict:
         rec = state.get("recommendation") or {}
@@ -335,7 +336,7 @@ EVIDENCE (fund-profile passages — cite these by number for any fund claim):
             )
 
         prompt = get_final_explanation_prompt()
-        text = llm.invoke(prompt.format(input=llm_input)).content.strip()
+        text = response_text(llm.invoke(prompt.format(input=llm_input)))
 
         iterations = state.get("iterations", 0) + (1 if critique else 0)
         return {"explanation": text, "iterations": iterations}
@@ -361,7 +362,7 @@ EVIDENCE (fund-profile passages — cite these by number for any fund claim):
         if evidence:  # only worth checking when there is evidence to cite
             crit_input = f"EVIDENCE:\n{format_evidence(evidence)}\n\nDRAFT:\n{explanation}"
             resp = llm.invoke(get_critique_prompt().format(input=crit_input))
-            verdict = _parse_json_object(resp.content)
+            verdict = _parse_json_object(response_text(resp))
             llm_ok = bool(verdict.get("ok", True))
             if not llm_ok and verdict.get("feedback"):
                 notes.append(str(verdict["feedback"]))

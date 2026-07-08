@@ -69,10 +69,11 @@ def judge_explanation(
     llm, profile: dict[str, Any], evidence_text: str, explanation: str
 ) -> dict[str, Any]:
     """Have the LLM grade one explanation. Returns the clamped score dict."""
+    from llm.model import response_text
     from llm.prompts import get_eval_judge_prompt
 
     judge_input = (
         f"PROFILE:\n{profile}\n\nEVIDENCE:\n{evidence_text}\n\nDRAFT:\n{explanation}"
     )
     resp = llm.invoke(get_eval_judge_prompt().format(input=judge_input))
-    return parse_judge_scores(resp.content)
+    return parse_judge_scores(response_text(resp))

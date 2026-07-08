@@ -45,6 +45,9 @@ liquidity_need (low/medium/high or null)
 
 If the user is unclear or you are not sure, use null.
 If the user answers "yes/no" for ESG, map to true/false.
+If the user explicitly says they have no lump sum / no monthly plan / "none" /
+"nothing" for saving_eur or monthly_saving_eur, extract 0 for that field (not
+null) — null means the amount is genuinely unstated, not that it's zero.
 """
 
 
