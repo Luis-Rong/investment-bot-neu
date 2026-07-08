@@ -19,7 +19,7 @@ jobs:
           cache: pip
 
       - name: Install dev dependencies
-        run: pip install -e ".[dev,rag]"
+        run: pip install -e ".[dev,rag,mcp]"
 
       - name: Lint
         run: ruff check .

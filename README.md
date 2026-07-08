@@ -72,7 +72,7 @@ python -m venv venv
 # macOS/Linux:  source venv/bin/activate
 
 # 2. Install (editable, with the extras you want)
-pip install -e ".[providers,rag,dev]"
+pip install -e ".[providers,rag,mcp,dev]"
 
 # 3. Configure secrets
 cp .env.example .env      # then fill in your provider API key
@@ -104,6 +104,37 @@ The model is selected via one env var — no code change needed:
 
 ```env
 LLM_MODEL=google_genai:gemini-2.5-flash   # or anthropic:claude-sonnet-5, openai:gpt-4o-mini, ...
+```
+
+### 🔌 MCP server
+
+The same data / risk / RAG capabilities the agent uses internally are also
+published as a standalone **Model Context Protocol** service (`mcp_server/server.py`),
+so any MCP client — Claude Desktop, another agent, an IDE — can call them without
+importing this codebase.
+
+```bash
+# stdio transport (the default MCP wiring)
+python -m mcp_server.server
+
+# or over HTTP for quick manual testing
+python -m mcp_server.server --transport streamable-http
+```
+
+Exposed tools: `get_prices`, `compute_risk_metrics`, `list_universe`,
+`target_volatility`, `plan_contributions`, and `retrieve_factsheet`. To register
+it with Claude Desktop, add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "robo-advisor": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "/absolute/path/to/investment_bot_neu"
+    }
+  }
+}
 ```
 
 ## 🧪 Development
