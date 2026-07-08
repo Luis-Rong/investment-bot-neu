@@ -16,6 +16,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from rag import _compat  # noqa: F401  — swaps in pysqlite3 before chromadb loads
+
 FACTSHEETS_DIR = Path(__file__).resolve().parent.parent / "data" / "factsheets"
 CHROMA_DIR = Path(__file__).resolve().parent.parent / "chroma_db"
 COLLECTION_NAME = "factsheets"
@@ -131,6 +133,31 @@ def build_store(
         total += len(chunks)
         print(f"indexed {metadata['source']}: {len(chunks)} chunks")
     return total
+
+
+def build_store_if_missing(
+    docs_dir: Path = FACTSHEETS_DIR,
+    persist_dir: Path = CHROMA_DIR,
+    collection_name: str = COLLECTION_NAME,
+) -> bool:
+    """Build the store from the committed factsheets iff it doesn't exist yet.
+
+    The generated fund profiles are committed but `chroma_db/` is gitignored, so
+    a fresh deploy has the corpus but no vector store. This rebuilds it offline
+    (no yfinance) on first boot. Returns True if a store is present afterwards;
+    swallows failures (e.g. Chroma unavailable) so the app still starts, just
+    ungrounded.
+    """
+    if persist_dir.exists() and any(persist_dir.iterdir()):
+        return True
+    generated = docs_dir / "generated"
+    if not generated.exists() or not any(generated.glob("*.md")):
+        return False
+    try:
+        build_store(docs_dir, persist_dir, collection_name)
+        return True
+    except Exception:
+        return False
 
 
 if __name__ == "__main__":

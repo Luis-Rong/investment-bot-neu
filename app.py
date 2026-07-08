@@ -2,12 +2,12 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from agent.graph import build_advisor_graph
-from data_sources.universe import build_universe
-from llm.model import get_llm
-from rag.retriever import store_exists
+from data_sources.universe import resolve_universe
+from llm.model import get_llm, has_provider_key
 from ui.chat import add_message, get_user_input, init_chat_state, render_messages
+from ui.demo import demo_exists, load_demo_recommendation
 from ui.recommendation import render_recommendation_ui
-from ui.theme import inject_base_css, render_app_header, render_sidebar
+from ui.theme import inject_base_css, render_app_header, render_byok, render_sidebar
 
 
 def ensure_initial_message():
@@ -31,22 +31,38 @@ st.set_page_config(
 inject_base_css()
 
 
-@st.cache_data(ttl=3600, show_spinner="Loading live market data...")
+@st.cache_data(ttl=3600, show_spinner="Loading market data...")
 def load_investment_universe():
-    """ETF universe enriched with live risk metrics. Cached for an hour."""
-    return build_universe()
+    """ETF universe (live metrics, or the committed snapshot). Cached for an hour."""
+    return resolve_universe()
 
 
 @st.cache_resource
-def get_advisor_graph():
-    """Compiled LangGraph advisor (routing + reflection). Built once per session."""
-    return build_advisor_graph(get_llm())
+def ensure_rag_store() -> bool:
+    """Build the Chroma store from committed factsheets on first boot if missing."""
+    from rag.ingest import build_store_if_missing
+
+    return build_store_if_missing()
 
 
-options = load_investment_universe()
-advisor = get_advisor_graph()
+options, uni_meta = load_investment_universe()
+grounded = ensure_rag_store()
 
-render_sidebar(n_funds=len(options), grounded=store_exists())
+# --- Resolve which LLM key to use: visitor's own (BYOK) > owner's env key ---
+byok_model, byok_key = render_byok()
+if byok_key:
+    active_model, active_key, have_key = byok_model, byok_key, True
+elif has_provider_key():
+    active_model, active_key, have_key = None, None, True  # owner key from env/secrets
+else:
+    active_model, active_key, have_key = None, None, False
+
+render_sidebar(
+    n_funds=len(options),
+    grounded=grounded,
+    data_source=uni_meta.get("source", "live"),
+    as_of=uni_meta.get("as_of"),
+)
 render_app_header()
 
 init_chat_state()
@@ -57,6 +73,16 @@ user_text = get_user_input()
 if user_text:
     add_message("user", user_text)
 
+    if not have_key:
+        add_message(
+            "assistant",
+            "To chat live I need an API key. Open **🔑 Use your own API key** in the "
+            "sidebar and paste one — meanwhile the example recommendation below shows "
+            "what a full result looks like.",
+        )
+        st.rerun()
+
+    advisor = build_advisor_graph(get_llm(model=active_model, api_key=active_key))
     with st.spinner("Thinking..."):
         result = advisor.invoke(
             {
@@ -79,10 +105,18 @@ if user_text:
     st.rerun()
 
 
-# Render recommendation UI + debug
-if st.session_state.recommendation:
-    rec = st.session_state.recommendation
+# --- Recommendation panel: the live result, or the committed demo example ---
+rec = st.session_state.recommendation
+showing_demo = rec is None and demo_exists()
+if showing_demo:
+    st.info(
+        "👀 **Example recommendation** — this is a saved sample so you can see the "
+        "output without a key. Add your own key in the sidebar and start chatting to "
+        "get one tailored to you."
+    )
+    rec = load_demo_recommendation()
 
+if rec:
     render_recommendation_ui(
         profile=rec["profile"],
         allocation=rec["allocation"],
@@ -92,6 +126,9 @@ if st.session_state.recommendation:
         sources=rec.get("sources", []),
     )
 
+# Developer view only for real (live) recommendations.
+if st.session_state.recommendation:
+    rec = st.session_state.recommendation
     with st.expander("Developer view (debug)"):
         st.write("Profile (structured):")
         st.json(rec["profile"])

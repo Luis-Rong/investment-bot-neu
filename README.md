@@ -155,6 +155,34 @@ advisor graph end-to-end and grades each explanation 1–5. The scoring logic
 (field comparison, aggregation, judge parsing) is pure and unit-tested offline in
 `tests/test_eval.py`, so CI verifies the harness without an API key.
 
+## ☁️ Deploying a public demo
+
+The repo is deploy-ready for **Streamlit Community Cloud** (or any host that runs
+`streamlit run app.py` from a `requirements.txt`). Three things make a public
+demo robust and cheap to run:
+
+- **Snapshot data (no live network needed).** Yahoo blocks datacenter IPs, so the
+  deployed app loads `data/universe_snapshot.json` — a committed, point-in-time
+  snapshot of the enriched ETF universe — instead of calling `yfinance` on every
+  cold start. Regenerate locally with `python -m data_sources.snapshot`; set
+  `USE_LIVE_DATA=1` locally to prefer live metrics. The app falls back to the
+  snapshot automatically if a live fetch fails.
+- **Bring-your-own-key (BYOK).** The public instance ships **no** shared LLM key,
+  so visitors don't drain the owner's quota. A sidebar panel lets each visitor
+  paste their own key (Google / Anthropic / OpenAI); it stays in their session
+  and is passed straight to the provider, never to a shared env var. Before a key
+  is entered, a committed **example recommendation** (`data/demo_recommendation.json`)
+  is shown so the product is legible with zero setup.
+- **Grounding still works.** `chroma_db/` is gitignored, so the app rebuilds the
+  vector store from the committed factsheets on first boot. A SQLite shim
+  (`rag/_compat.py` + `pysqlite3-binary`, Linux-only) covers hosts whose system
+  SQLite is too old for Chroma.
+
+Deploy steps: point Streamlit Community Cloud at `app.py`; it installs from
+`requirements.txt`. Optionally add an owner key under **App → Settings → Secrets**
+(`GOOGLE_API_KEY = "…"`) if you want live chat without BYOK — otherwise leave it
+out and visitors bring their own.
+
 ## 🧪 Development
 
 ```bash

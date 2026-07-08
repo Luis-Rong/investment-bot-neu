@@ -1,0 +1,58 @@
+{
+  "example_profile_summary": "35, retirement in ~30 years, 10k lump sum + 500/mo, risk 7/10",
+  "recommendation": {
+    "profile": {
+      "goal": "retirement",
+      "horizon_years": 30,
+      "risk": 7,
+      "esg": false,
+      "saving_eur": 10000,
+      "monthly_saving_eur": 500,
+      "experience": "medium",
+      "liquidity_need": "low"
+    },
+    "allocation": [
+      {
+        "id": "EQ_US",
+        "name": "iShares Core S&P 500 ETF",
+        "percentage": 34
+      },
+      {
+        "id": "EQ_DEV",
+        "name": "Vanguard Developed Markets ETF",
+        "percentage": 33
+      },
+      {
+        "id": "EQ_ESG_US",
+        "name": "Vanguard ESG U.S. Stock ETF",
+        "percentage": 33
+      }
+    ],
+    "contributions": {
+      "one_time_eur": 9000,
+      "monthly_plan_eur": 500
+    },
+    "explanation": "To help you reach your retirement goal over the next 30 years, I have designed a portfolio focused on long-term growth. This portfolio is composed entirely of stock ETFs, which allow you to participate in company profits and historically offer the highest long-term returns, though their value can fluctuate in the short term [1, 2, 3]. Specifically, we utilize the iShares Core S&P 500 ETF and the Vanguard FTSE Developed Markets Index Fund to provide broad global exposure [1, 2]. We also include the Vanguard ESG U.S. Stock ETF to prioritize companies with strong environmental, social, and governance practices [3]. These funds were selected for their cost-efficient structure, with expense ratios as low as 0.03% [1, 2, 3]. As a helpful starting point, we suggest an initial investment of 9,000 EUR supplemented by a 500 EUR monthly savings plan. If your comfort with market fluctuations changes, please let me know, and we can adjust the risk level of your portfolio.",
+    "sources": [
+      {
+        "text": "# iShares Core S&P 500 ETF (IVV)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\niShares Core S&P 500 ETF trades under the ticker IVV in the category 'Large Blend'.\nFund size: 888.1 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.03% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 17.0%\n- Annualized return: 13.3%\n- Maximum drawdown: -24.5%\n- Sharpe ratio: 0.82",
+        "source": "IVV.md",
+        "ticker": "IVV",
+        "score": 0.5476809144020081
+      },
+      {
+        "text": "# Vanguard FTSE Developed Markets Index Fund ETF Shares (VEA)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\nVanguard FTSE Developed Markets Index Fund ETF Shares trades under the ticker VEA in the category 'Foreign Large Blend'.\nFund size: 316.3 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.03% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 16.8%\n- Annualized return: 10.2%\n- Maximum drawdown: -29.7%\n- Sharpe ratio: 0.66",
+        "source": "VEA.md",
+        "ticker": "VEA",
+        "score": 0.8086876273155212
+      },
+      {
+        "text": "# Vanguard ESG U.S. Stock ETF (ESGV)\n\nData as of 2026-07-08. Sources: fund metadata from the project universe, live fundamentals and 5-year price history via Yahoo Finance.\n\n## What this fund is\n\nThis is an equity (stock) ETF. Equity funds participate in company profits and historically offer the highest long-term returns, but their value can fluctuate strongly in the short term.\n\nVanguard ESG U.S. Stock ETF trades under the ticker ESGV in the category 'Large Blend'.\nFund size: 13.2 billion USD.\n\n## Costs\n\nThe total expense ratio (TER) is 0.09% per year. Costs are deducted from the fund's assets automatically; lower cost means more of the market return stays with the investor.\n\n## Risk profile (computed from 5-year price history)\n\n- Annualized volatility: 18.5%\n- Annualized return: 11.8%\n- Maximum drawdown: -28.8%\n- Sharpe ratio: 0.70",
+        "source": "ESGV.md",
+        "ticker": "ESGV",
+        "score": 0.5010817646980286
+      }
+    ],
+    "missing_fields_at_finish": []
+  }
+}

@@ -104,7 +104,12 @@ def render_app_header():
     )
 
 
-def render_sidebar(n_funds: int, grounded: bool):
+def render_sidebar(
+    n_funds: int,
+    grounded: bool,
+    data_source: str = "live",
+    as_of: str | None = None,
+):
     with st.sidebar:
         st.markdown('<div class="mer-side-title">&#9670; Meridian</div>', unsafe_allow_html=True)
         st.caption("Chat-based robo-advisor prototype")
@@ -114,10 +119,19 @@ def render_sidebar(n_funds: int, grounded: bool):
             if grounded
             else '<span class="mer-badge">Citations: off &mdash; run rag pipeline</span>'
         )
+        if data_source == "live":
+            data_badge = f'<span class="mer-badge on">Live data: {n_funds} ETFs</span>'
+        elif data_source == "snapshot":
+            asof = f" ({as_of})" if as_of else ""
+            data_badge = (
+                f'<span class="mer-badge on">Snapshot data: {n_funds} ETFs{asof}</span>'
+            )
+        else:
+            data_badge = f'<span class="mer-badge">Metadata only: {n_funds} ETFs</span>'
         st.markdown(
             f"""
             <div class="mer-badges" style="flex-direction: column; align-items: flex-start;">
-                <span class="mer-badge on">Live data: {n_funds} ETFs</span>
+                {data_badge}
                 {grounded_badge}
             </div>
             """,
@@ -143,3 +157,36 @@ def render_sidebar(n_funds: int, grounded: bool):
             "returns.</div>",
             unsafe_allow_html=True,
         )
+
+
+def render_byok() -> tuple[str, str | None]:
+    """Sidebar 'bring your own key' controls. Returns `(model, api_key|None)`.
+
+    The public demo ships no shared key, so live chat needs the visitor's own.
+    The key lives only in this Streamlit session and is passed straight to the
+    chosen provider — never stored server-side or in a shared env var.
+    """
+    from llm.model import BYOK_MODEL_CHOICES
+
+    with st.sidebar:
+        with st.expander("🔑 Use your own API key", expanded=False):
+            st.caption(
+                "The public demo has no shared key. Paste your own to chat live — "
+                "it stays in your browser session and is sent only to the provider "
+                "you select."
+            )
+            labels = [label for label, _ in BYOK_MODEL_CHOICES]
+            idx = st.selectbox(
+                "Model",
+                range(len(labels)),
+                format_func=lambda i: labels[i],
+                key="byok_model_idx",
+            )
+            model = BYOK_MODEL_CHOICES[idx][1]
+            key = st.text_input(
+                "API key",
+                type="password",
+                key="byok_key_input",
+                placeholder="AIza… / sk-… / sk-ant-…",
+            )
+    return model, (key.strip() or None)

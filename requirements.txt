@@ -1,0 +1,32 @@
+# Runtime dependencies for a hosted deploy (e.g. Streamlit Community Cloud).
+#
+# Community Cloud installs from this file. It mirrors pyproject.toml's runtime
+# deps plus the `rag` and `providers` extras (needed live: grounding + BYOK for
+# Anthropic/OpenAI). Local dev should still use `pip install -e .[dev,rag,mcp]`.
+#
+# The local packages (agent/, rag/, llm/, ...) are importable because
+# `streamlit run app.py` runs from the repo root — no package install needed.
+
+# --- Core app ---
+streamlit>=1.50
+langchain>=1.0
+langgraph>=1.0
+pydantic>=2.10
+python-dotenv>=1.0
+pandas>=2.2
+numpy>=2.0
+yfinance>=0.2.40
+
+# --- LLM providers (default + BYOK options) ---
+langchain-google-genai>=4.0
+langchain-anthropic>=0.3
+langchain-openai>=0.3
+
+# --- RAG layer (Chroma store + PDF ingest) ---
+chromadb>=0.5
+pypdf>=5.0
+
+# Chroma needs SQLite >= 3.35; some managed hosts ship an older system build.
+# This wheel is Linux-only (the marker keeps `pip install -r` working on
+# Windows/macOS dev machines, where the stdlib sqlite3 is recent enough).
+pysqlite3-binary>=0.5; sys_platform == "linux"
