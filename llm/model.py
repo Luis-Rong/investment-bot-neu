@@ -19,7 +19,7 @@ import os
 
 from langchain.chat_models import init_chat_model
 
-DEFAULT_MODEL = "google_genai:gemini-2.5-flash"
+DEFAULT_MODEL = "google_genai:gemini-3.1-flash-lite"
 
 
 def get_llm(temperature: float = 0.3):
