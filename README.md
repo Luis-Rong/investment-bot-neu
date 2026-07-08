@@ -77,9 +77,26 @@ pip install -e ".[providers,rag,dev]"
 # 3. Configure secrets
 cp .env.example .env      # then fill in your provider API key
 
-# 4. Run
+# 4. Build the RAG corpus + vector store (optional but recommended —
+#    enables cited, grounded recommendations)
+python -m rag.build_docs   # generates fund profiles from live market data
+python -m rag.ingest       # chunks + embeds them into chroma_db/
+
+# 5. Run
 streamlit run app.py
 ```
+
+### 📚 How grounding works
+
+Official factsheets/KIIDs are copyrighted, so the default corpus is **generated
+from data the project can legally reproduce**: `rag/build_docs.py` writes one
+Markdown fund profile per ETF (live fundamentals + computed 5-year risk metrics,
+with an as-of date). `rag/ingest.py` chunks the documents (paragraph-aware, with
+contextual title headers) and embeds them with Chroma's built-in local ONNX
+MiniLM model — no API key, no torch. You can additionally drop official PDF
+factsheets into `data/factsheets/`; the ingest step picks up both. At answer
+time the app retrieves per-fund passages and the LLM must cite them (`[1]`) for
+every fund claim; the UI shows the cited passages in a *Sources* panel.
 
 ### 🔑 Choosing an LLM provider
 

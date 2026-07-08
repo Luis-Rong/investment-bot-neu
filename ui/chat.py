@@ -22,4 +22,4 @@ def add_message(role: str, content: str):
 
 
 def get_user_input():
-    return st.chat_input("Schreibe hier...")
+    return st.chat_input("Tell me about your investment goals...")

@@ -10,8 +10,10 @@ from logic.allocation import build_allocation
 from logic.contributions import compute_contributions
 from logic.profile import UserProfile, missing_fields
 from logic.scoring import score_options
+from rag.retriever import format_evidence, retrieve, store_exists
 from ui.chat import add_message, get_user_input, init_chat_state, render_messages
 from ui.recommendation import render_recommendation_ui
+from ui.theme import inject_base_css, render_app_header, render_sidebar
 
 
 def clamp(value: int, min_v: int, max_v: int) -> int:
@@ -63,7 +65,27 @@ def chat_history_as_langchain_messages(messages):
     return [{"role": m["role"], "content": m["content"]} for m in messages]
 
 
-def generate_recommendation_text(llm, user_dict, allocation, contributions):
+def retrieve_evidence(allocation: list, opt_by_id: dict, user_dict: dict) -> list:
+    """Factsheet passages for each allocated ETF (grounding for the explanation).
+
+    Returns [] when the vector store hasn't been built yet, so the app still
+    works — just without citations.
+    """
+    if not store_exists():
+        return []
+    goal = user_dict.get("goal") or "long-term investing"
+    passages = []
+    for item in allocation:
+        opt = opt_by_id.get(item["id"], {})
+        ticker = opt.get("ticker")
+        if not ticker:
+            continue
+        query = f"{opt.get('name', '')} risk profile costs suitability for {goal}"
+        passages.extend(retrieve(query, k=1, ticker=ticker))
+    return passages
+
+
+def generate_recommendation_text(llm, user_dict, allocation, contributions, evidence):
     portfolio_lines = "\n".join([f"- {x['percentage']}% {x['name']}" for x in allocation])
 
     llm_input = f"""
@@ -76,17 +98,41 @@ Contribution plan:
 - One-time investment today: {contributions["one_time_eur"]} EUR
 - Monthly savings plan: {contributions["monthly_plan_eur"]} EUR
 
-Write a client-friendly recommendation in English:
-- Mirror the user's goal and time horizon first.
-- Explain the portfolio in plain language.
-- Mention ESG if esg=true.
-- Explain the one-time investment and the monthly plan clearly.
-- If one_time_eur is 0, focus on the monthly plan.
-- If monthly_plan_eur is 0, focus on the one-time investment.
-Max 6 sentences.
+EVIDENCE (fund-profile passages — cite these by number for any fund claim):
+{format_evidence(evidence)}
 """
     final_prompt = get_final_explanation_prompt()
     return llm.invoke(final_prompt.format(input=llm_input)).content.strip()
+
+
+def compute_recommendation(llm, options, user_dict) -> dict:
+    """Score → allocate → contributions → grounded explanation, as one bundle."""
+    scored = score_options(options, user_dict)
+    allocation = build_allocation(scored, top_n=3)
+
+    contrib = compute_contributions(
+        user_dict.get("saving_eur", 0), user_dict.get("monthly_saving_eur", 0)
+    )
+
+    opt_by_id = {o["id"]: o for o in options}
+    evidence = retrieve_evidence(allocation, opt_by_id, user_dict)
+
+    explanation = generate_recommendation_text(
+        llm=llm,
+        user_dict=user_dict,
+        allocation=allocation,
+        contributions=contrib,
+        evidence=evidence,
+    )
+
+    return {
+        "profile": user_dict,
+        "allocation": allocation,
+        "contributions": contrib,
+        "explanation": explanation,
+        "sources": evidence,
+        "missing_fields_at_finish": [],
+    }
 
 
 def extract_profile(llm, messages):
@@ -134,14 +180,21 @@ def ensure_initial_message():
     if len(st.session_state.messages) == 0:
         add_message(
             "assistant",
-            "Hi! I am your robo-advisor prototype. What are you investing for (e.g., retirement, emergency fund, long-term wealth building)?",
+            "Hi, I'm your investment advisor. Let's build a portfolio that fits you. "
+            "What are you investing for — retirement, a big purchase, long-term wealth?",
         )
 
 
 load_dotenv()
 
-st.set_page_config(page_title="Robo-Advisor Chatbot", layout="centered")
-st.title("Robo-Advisor Chatbot Prototype")
+st.set_page_config(
+    page_title="Meridian — AI Portfolio Advisor",
+    page_icon="◆",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
+
+inject_base_css()
 
 
 @st.cache_data(ttl=3600, show_spinner="Loading live market data...")
@@ -151,6 +204,9 @@ def load_investment_universe():
 
 
 options = load_investment_universe()
+
+render_sidebar(n_funds=len(options), grounded=store_exists())
+render_app_header()
 
 init_chat_state()
 ensure_initial_message()
@@ -173,28 +229,15 @@ if user_text:
             new_risk = clamp(old_risk + delta, 1, 10)
             user_dict["risk"] = new_risk
 
-            scored = score_options(options, user_dict)
-            allocation = build_allocation(scored, top_n=3)
-
-            contrib = compute_contributions(
-                user_dict.get("saving_eur", 0), user_dict.get("monthly_saving_eur", 0)
-            )
-
-            explanation = generate_recommendation_text(
-                llm=llm, user_dict=user_dict, allocation=allocation, contributions=contrib
-            )
-
-            add_message("assistant", explanation)
-
-            st.session_state.recommendation = {
-                "profile": user_dict,
-                "allocation": allocation,
-                "contributions": contrib,
-                "explanation": explanation,
-                "missing_fields_at_finish": [],
-                "risk_adjustment": {"delta": delta, "old_risk": old_risk, "new_risk": new_risk},
+            new_rec = compute_recommendation(llm, options, user_dict)
+            new_rec["risk_adjustment"] = {
+                "delta": delta,
+                "old_risk": old_risk,
+                "new_risk": new_risk,
             }
 
+            add_message("assistant", new_rec["explanation"])
+            st.session_state.recommendation = new_rec
             st.rerun()
 
     # Normal flow: extract profile and continue questions
@@ -236,30 +279,12 @@ if user_text:
     if bot_text == "READY_FOR_RECOMMENDATION" and len(missing) == 0:
         user_dict = profile.model_dump()
 
-        scored = score_options(options, user_dict)
-        allocation = build_allocation(scored, top_n=3)
-
-        contrib = compute_contributions(
-            user_dict.get("saving_eur", 0), user_dict.get("monthly_saving_eur", 0)
-        )
-
-        explanation = generate_recommendation_text(
-            llm=llm, user_dict=user_dict, allocation=allocation, contributions=contrib
-        )
+        st.session_state.recommendation = compute_recommendation(llm, options, user_dict)
 
         add_message(
             "assistant",
             "I have prepared a personalized recommendation for you. See the summary below.",
         )
-
-        st.session_state.recommendation = {
-            "profile": user_dict,
-            "allocation": allocation,
-            "contributions": contrib,
-            "explanation": explanation,
-            "missing_fields_at_finish": [],
-        }
-
         st.rerun()
 
 
@@ -272,6 +297,8 @@ if st.session_state.recommendation:
         allocation=rec["allocation"],
         contributions=rec["contributions"],
         explanation_text=rec["explanation"],
+        options=options,
+        sources=rec.get("sources", []),
     )
 
     with st.expander("Developer view (debug)"):
