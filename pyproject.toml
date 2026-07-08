@@ -26,12 +26,10 @@ providers = [
     "langchain-openai>=0.3",
     "langchain-ibm>=0.3",
 ]
-# Retrieval-augmented generation layer
+# Retrieval-augmented generation layer. Embeddings run on Chroma's built-in
+# local ONNX MiniLM model, so no torch/sentence-transformers install is needed.
 rag = [
-    "langchain-community>=0.3",
-    "langchain-chroma>=0.2",
     "chromadb>=0.5",
-    "sentence-transformers>=3.0",
     "pypdf>=5.0",
 ]
 # Model Context Protocol server
@@ -54,7 +52,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 # Packages are added phase by phase as their modules land
 # (data_sources, rag, agent, mcp_server follow in later phases).
-packages = ["llm", "logic", "ui", "data_sources"]
+packages = ["llm", "logic", "ui", "data_sources", "rag"]
 
 [tool.ruff]
 line-length = 100

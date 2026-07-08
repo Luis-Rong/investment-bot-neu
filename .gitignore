@@ -19,6 +19,7 @@ chroma_db/
 *.sqlite3
 
 # Editor / OS
+.claude/
 .vscode/
 .idea/
 .DS_Store
