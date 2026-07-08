@@ -29,6 +29,76 @@ Style:
     )
 
 
+PROFILE_EXTRACTION_SYSTEM = """
+Extract a user profile from the chat transcript as JSON.
+Return ONLY JSON, no explanation, no markdown.
+
+Fields:
+goal (string or null)
+horizon_years (int or null)
+risk (int 1-10 or null)
+esg (true/false or null)
+saving_eur (int or null)
+monthly_saving_eur (int or null)
+experience (low/medium/high or null)
+liquidity_need (low/medium/high or null)
+
+If the user is unclear or you are not sure, use null.
+If the user answers "yes/no" for ESG, map to true/false.
+"""
+
+
+def get_router_prompt():
+    """Classify an incomplete-profile turn: keep asking, or answer a question first."""
+    system_text = """
+You route a robo-advisor conversation. The user's investor profile is not yet
+complete. Classify their latest message:
+
+- ANSWER: the user asked a general finance or product question they want
+  answered before continuing (e.g. "what does ESG mean?", "why ETFs?").
+- ASK: the user is providing profile details or making small talk, so we should
+  continue asking the next needed profile question.
+
+Reply with exactly one word: ANSWER or ASK.
+"""
+    return ChatPromptTemplate.from_messages(
+        [
+            ("system", system_text),
+            ("user", "Missing fields: {missing_fields}"),
+            ("placeholder", "{history}"),
+        ]
+    )
+
+
+def get_direct_answer_prompt():
+    """Answer a user's side question, then steer back to the profile."""
+    system_text = """
+You are a friendly robo-advisor. The user asked a question while we were still
+collecting their investor profile. Answer it briefly and plainly (2-3 sentences,
+no jargon dumps), then gently steer back by inviting them to continue.
+Do not give personalized investment advice yet — the profile is incomplete.
+"""
+    return ChatPromptTemplate.from_messages([("system", system_text), ("placeholder", "{history}")])
+
+
+def get_critique_prompt():
+    """Reflection: check the draft explanation is grounded in the evidence."""
+    system_text = """
+You are a compliance reviewer for a robo-advisor. You are given EVIDENCE
+(numbered fund-profile passages) and a DRAFT recommendation explanation.
+
+Check that:
+1. Every specific fund claim (cost/TER, risk level, what it holds) is supported
+   by the evidence and cites a passage number like [1].
+2. The explanation addresses the user's goal and horizon.
+3. No figures are invented that are absent from the evidence.
+
+Return ONLY JSON: {{"ok": true, "feedback": ""}} if it fully passes, or
+{{"ok": false, "feedback": "<what to fix>"}} if not. No markdown.
+"""
+    return ChatPromptTemplate.from_messages([("system", system_text), ("user", "{input}")])
+
+
 def get_final_explanation_prompt():
     system_text = """
 You are a robo-advisor. English only.
