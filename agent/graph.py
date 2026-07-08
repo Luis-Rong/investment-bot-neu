@@ -172,6 +172,31 @@ def _history(messages: list[dict[str, str]]) -> list[dict[str, str]]:
     return [{"role": m["role"], "content": m["content"]} for m in messages]
 
 
+def extract_profile(llm, messages: list[dict[str, str]]) -> dict:
+    """Run the profile-extraction LLM call over a chat transcript.
+
+    Module-level so the evaluation harness (Phase 5) can exercise the *same*
+    extraction path the graph uses in production, not a copy. Returns the parsed
+    profile dict, the raw model output (for debugging), and the still-missing
+    required fields.
+    """
+    transcript = "\n".join(f"{m['role']}: {m['content']}" for m in messages)
+    resp = llm.invoke(
+        [
+            {"role": "system", "content": PROFILE_EXTRACTION_SYSTEM},
+            {"role": "user", "content": transcript},
+        ]
+    )
+    raw = resp.content.strip()
+    data = _parse_json_object(raw)
+    profile = UserProfile(**data) if data else UserProfile()
+    return {
+        "profile": profile.model_dump(),
+        "profile_raw": raw,
+        "missing": missing_fields(profile),
+    }
+
+
 # --------------------------------------------------------------------------- #
 # Graph factory: nodes are closures over the injected LLM
 # --------------------------------------------------------------------------- #
@@ -180,21 +205,7 @@ def build_advisor_graph(llm):
 
     # ---- extraction + routing ------------------------------------------- #
     def extract_profile_node(state: AdvisorState) -> dict:
-        transcript = "\n".join(f"{m['role']}: {m['content']}" for m in state["messages"])
-        resp = llm.invoke(
-            [
-                {"role": "system", "content": PROFILE_EXTRACTION_SYSTEM},
-                {"role": "user", "content": transcript},
-            ]
-        )
-        raw = resp.content.strip()
-        data = _parse_json_object(raw)
-        profile = UserProfile(**data) if data else UserProfile()
-        return {
-            "profile": profile.model_dump(),
-            "profile_raw": raw,
-            "missing": missing_fields(profile),
-        }
+        return extract_profile(llm, state["messages"])
 
     def route_node(state: AdvisorState) -> dict:
         missing = state.get("missing", [])

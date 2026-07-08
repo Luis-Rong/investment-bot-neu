@@ -62,6 +62,7 @@ flowchart LR
 | ReAct / Reflection architectures | `agent/graph.py` (reflect node + loop) |
 | LangGraph state machines | `agent/graph.py`, `agent/state.py` |
 | MCP / FastMCP servers | `mcp_server/server.py` |
+| Evaluation & LLM-as-judge | `eval/extraction.py`, `eval/judge.py` |
 
 ## 🚀 Getting started
 
@@ -136,6 +137,23 @@ it with Claude Desktop, add to `claude_desktop_config.json`:
   }
 }
 ```
+
+### 📏 Evaluation harness
+
+The LLM pipeline is measured, not just written. `eval/` holds a labelled test
+set of chat transcripts → expected `UserProfile` and an **LLM-as-judge** pass
+that scores recommendation explanations on grounding, relevance, clarity and
+safety.
+
+```bash
+python -m eval.run              # profile-extraction accuracy (per-field + overall)
+python -m eval.run --judge      # + LLM-as-judge over live recommendations
+```
+
+Extraction hits the configured model once per case; the judge pass runs the full
+advisor graph end-to-end and grades each explanation 1–5. The scoring logic
+(field comparison, aggregation, judge parsing) is pure and unit-tested offline in
+`tests/test_eval.py`, so CI verifies the harness without an API key.
 
 ## 🧪 Development
 

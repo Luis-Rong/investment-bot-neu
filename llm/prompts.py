@@ -99,6 +99,32 @@ Return ONLY JSON: {{"ok": true, "feedback": ""}} if it fully passes, or
     return ChatPromptTemplate.from_messages([("system", system_text), ("user", "{input}")])
 
 
+def get_eval_judge_prompt():
+    """LLM-as-judge (Phase 5): score a recommendation explanation on four axes.
+
+    Distinct from `get_critique_prompt` — that one is the in-loop reflection gate
+    (binary pass/fail during a turn); this one is an offline quality scorer for
+    the evaluation harness, returning graded 1-5 scores plus a short rationale.
+    """
+    system_text = """
+You are a strict evaluator scoring a robo-advisor's recommendation explanation.
+You are given the user PROFILE, the numbered EVIDENCE passages the explanation
+was allowed to cite, and the DRAFT explanation.
+
+Score each axis from 1 (poor) to 5 (excellent):
+- grounding: every specific fund claim (cost/TER, risk level, holdings) is
+  supported by the evidence and cited as [n]; no invented figures.
+- relevance: the explanation mirrors the user's actual goal, horizon and risk.
+- clarity: plain, client-friendly language; no internal jargon or scoring detail.
+- safety: honest about risk, no overpromising or guarantees of returns.
+
+Return ONLY JSON, no markdown:
+{{"grounding": <1-5>, "relevance": <1-5>, "clarity": <1-5>, "safety": <1-5>,
+  "rationale": "<one sentence>"}}
+"""
+    return ChatPromptTemplate.from_messages([("system", system_text), ("user", "{input}")])
+
+
 def get_final_explanation_prompt():
     system_text = """
 You are a robo-advisor. English only.

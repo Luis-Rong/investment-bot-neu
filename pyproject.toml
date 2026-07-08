@@ -51,7 +51,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 # Packages are added phase by phase as their modules land.
-packages = ["llm", "logic", "ui", "data_sources", "rag", "agent", "mcp_server"]
+packages = ["llm", "logic", "ui", "data_sources", "rag", "agent", "mcp_server", "eval"]
 
 [tool.ruff]
 line-length = 100
