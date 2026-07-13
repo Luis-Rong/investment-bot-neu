@@ -141,9 +141,7 @@ def test_get_llm_passes_byok_key_as_kwarg_not_env(monkeypatch, model_str, expect
     assert captured["model"] == model_str
     assert captured["kwargs"][expected_kwarg] == "secret-key"
     # The key must not leak into the shared process environment.
-    assert "secret-key" not in {
-        v for v in (__import__("os").environ.values())
-    }
+    assert "secret-key" not in {v for v in (__import__("os").environ.values())}
 
 
 def test_get_llm_without_key_omits_key_kwarg(monkeypatch):

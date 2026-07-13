@@ -55,7 +55,9 @@ def _want_live() -> bool:
     return os.getenv("USE_LIVE_DATA", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
-def resolve_universe(prefer_live: bool | None = None, period: str = "5y") -> tuple[list[dict], dict]:
+def resolve_universe(
+    prefer_live: bool | None = None, period: str = "5y"
+) -> tuple[list[dict], dict]:
     """Return `(options, meta)`, choosing the best available data source.
 
     Order: live yfinance (only if requested/enabled) → committed snapshot →

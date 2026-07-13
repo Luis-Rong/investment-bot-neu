@@ -123,9 +123,7 @@ def render_sidebar(
             data_badge = f'<span class="mer-badge on">Live data: {n_funds} ETFs</span>'
         elif data_source == "snapshot":
             asof = f" ({as_of})" if as_of else ""
-            data_badge = (
-                f'<span class="mer-badge on">Snapshot data: {n_funds} ETFs{asof}</span>'
-            )
+            data_badge = f'<span class="mer-badge on">Snapshot data: {n_funds} ETFs{asof}</span>'
         else:
             data_badge = f'<span class="mer-badge">Metadata only: {n_funds} ETFs</span>'
         st.markdown(

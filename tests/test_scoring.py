@@ -6,13 +6,45 @@ from logic.scoring import risk_to_target_volatility, score_options
 # `ter`/`horizon_min`/`esg` metadata.
 OPTIONS = [
     # high vol, GOOD risk-adjusted return, cheap, non-ESG
-    {"id": "A", "name": "A", "volatility": 0.18, "sharpe": 0.9, "ter": 0.05, "horizon_min": 7, "esg": False},
+    {
+        "id": "A",
+        "name": "A",
+        "volatility": 0.18,
+        "sharpe": 0.9,
+        "ter": 0.05,
+        "horizon_min": 7,
+        "esg": False,
+    },
     # low vol, flat return
-    {"id": "B", "name": "B", "volatility": 0.05, "sharpe": 0.0, "ter": 0.30, "horizon_min": 2, "esg": False},
+    {
+        "id": "B",
+        "name": "B",
+        "volatility": 0.05,
+        "sharpe": 0.0,
+        "ter": 0.30,
+        "horizon_min": 2,
+        "esg": False,
+    },
     # mid vol, ESG
-    {"id": "C", "name": "C", "volatility": 0.16, "sharpe": 0.7, "ter": 0.22, "horizon_min": 5, "esg": True},
+    {
+        "id": "C",
+        "name": "C",
+        "volatility": 0.16,
+        "sharpe": 0.7,
+        "ter": 0.22,
+        "horizon_min": 5,
+        "esg": True,
+    },
     # high vol, TERRIBLE risk-adjusted return (the REIT-style trap)
-    {"id": "D", "name": "D", "volatility": 0.19, "sharpe": 0.2, "ter": 0.13, "horizon_min": 5, "esg": False},
+    {
+        "id": "D",
+        "name": "D",
+        "volatility": 0.19,
+        "sharpe": 0.2,
+        "ter": 0.13,
+        "horizon_min": 5,
+        "esg": False,
+    },
 ]
 
 

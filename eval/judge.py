@@ -72,8 +72,6 @@ def judge_explanation(
     from llm.model import response_text
     from llm.prompts import get_eval_judge_prompt
 
-    judge_input = (
-        f"PROFILE:\n{profile}\n\nEVIDENCE:\n{evidence_text}\n\nDRAFT:\n{explanation}"
-    )
+    judge_input = f"PROFILE:\n{profile}\n\nEVIDENCE:\n{evidence_text}\n\nDRAFT:\n{explanation}"
     resp = llm.invoke(get_eval_judge_prompt().format(input=judge_input))
     return parse_judge_scores(response_text(resp))
