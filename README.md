@@ -1,31 +1,33 @@
-# 🤖 Agentic RAG Robo-Advisor
+# Agentic RAG Robo-Advisor
 
-A chat-based investment advisor that turns a short conversation into a personalized,
-**evidence-grounded** portfolio recommendation. It combines an LLM front-end with a
-deterministic finance core, **live market data**, and **retrieval-augmented generation**
-over real fund factsheets.
+A chat-based investment advisor. You talk through your goal and how much risk
+you're comfortable with, and it builds an ETF portfolio for you — with the
+reasoning tied back to real fund data instead of made up by the model.
 
-> Originally built as a bachelor-thesis prototype, now extended into a full
-> **agentic RAG** application that applies the architecture from the
-> [IBM RAG and Agentic AI Professional Certificate](https://www.coursera.org/professional-certificates/ibm-rag-and-agentic-ai)
-> to a real fintech use case.
+The idea is a split brain: the language model runs the conversation, but the
+parts that actually matter for money — scoring, allocation, the risk maths — are
+plain, deterministic Python that's unit-tested. Every recommendation also cites
+the fund factsheets it leaned on, so you can see where a number came from.
 
----
+It started as a bachelor-thesis prototype. I rebuilt it into a proper agentic RAG
+application to work through the architecture from the
+[IBM RAG and Agentic AI Professional Certificate](https://www.coursera.org/professional-certificates/ibm-rag-and-agentic-ai)
+on a real use case rather than a toy one.
 
-## ✨ What it does
+## What it does
 
-- **Conversational profiling** — the bot asks one question at a time to learn your goal,
-  time horizon, risk tolerance, ESG preference, and how much you want to invest.
-- **Real risk metrics** — instead of hard-coded numbers, it computes volatility, max
-  drawdown, and Sharpe ratio from live historical prices (via `yfinance`).
-- **Grounded explanations** — recommendations cite real fund factsheets retrieved from a
-  vector store, so the advice is traceable, not hallucinated.
-- **Agentic reasoning** — a LangGraph state machine routes each query, fetches data or
-  retrieves documents as needed, and runs a self-reflection loop before answering.
-- **Interactive** — adjust the recommendation in natural language
-  (*"make it slightly less risky"*).
+- Learns your profile one question at a time: goal, time horizon, risk tolerance,
+  ESG preference, and how much you want to put in.
+- Computes volatility, max drawdown and Sharpe ratio from real price history
+  (`yfinance`) — no hard-coded "risk = 8" integers anywhere.
+- Retrieves the relevant fund factsheets and makes the model cite them, so a claim
+  about a fund can be traced back to a source instead of taken on trust.
+- Handles each turn through a LangGraph state machine that routes the query,
+  fetches data or documents as needed, and runs one self-check pass before it
+  answers.
+- Takes follow-ups in plain language ("make it a bit less risky") and re-balances.
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -42,7 +44,7 @@ flowchart LR
     RF -->|revise| G
 ```
 
-**Layer separation** (kept clean from the thesis version):
+The layers stayed cleanly separated from the thesis version onward:
 
 | Layer | Package | Responsibility |
 |-------|---------|----------------|
@@ -53,7 +55,10 @@ flowchart LR
 | Core | `logic/` | Pure, deterministic scoring / allocation / contributions |
 | LLM | `llm/` | Multi-provider model factory + prompts |
 
-### 🎓 IBM course mapping
+### IBM course mapping
+
+If you're checking this against the certificate, here's where each topic actually
+lives in the code:
 
 | Course topic | Where it lives |
 |---|---|
@@ -64,7 +69,7 @@ flowchart LR
 | MCP / FastMCP servers | `mcp_server/server.py` |
 | Evaluation & LLM-as-judge | `eval/extraction.py`, `eval/judge.py` |
 
-## 🚀 Getting started
+## Getting started
 
 ```bash
 # 1. Create and activate a virtual environment
@@ -87,32 +92,33 @@ python -m rag.ingest       # chunks + embeds them into chroma_db/
 streamlit run app.py
 ```
 
-### 📚 How grounding works
+### How grounding works
 
-Official factsheets/KIIDs are copyrighted, so the default corpus is **generated
-from data the project can legally reproduce**: `rag/build_docs.py` writes one
-Markdown fund profile per ETF (live fundamentals + computed 5-year risk metrics,
-with an as-of date). `rag/ingest.py` chunks the documents (paragraph-aware, with
-contextual title headers) and embeds them with Chroma's built-in local ONNX
-MiniLM model — no API key, no torch. You can additionally drop official PDF
-factsheets into `data/factsheets/`; the ingest step picks up both. At answer
-time the app retrieves per-fund passages and the LLM must cite them (`[1]`) for
-every fund claim; the UI shows the cited passages in a *Sources* panel.
+Official factsheets and KIIDs are copyrighted, so I don't ship them. Instead
+`rag/build_docs.py` writes one Markdown profile per ETF from data the project can
+legally reproduce: live fundamentals plus computed 5-year risk metrics, with an
+as-of date. `rag/ingest.py` chunks those documents (paragraph-aware, with the
+fund title prefixed onto each chunk so a stray risk-metrics passage still says
+which fund it describes) and embeds them with Chroma's built-in local ONNX MiniLM
+model — no API key, no torch install. If you have real PDF factsheets, drop them
+into `data/factsheets/` and the ingest step picks them up too. At answer time the
+app pulls the passages behind each recommended fund and the model has to cite them
+by number; the UI lists those passages in a Sources panel.
 
-### 🔑 Choosing an LLM provider
+### Choosing an LLM provider
 
-The model is selected via one env var — no code change needed:
+One env var picks the model — no code change:
 
 ```env
 LLM_MODEL=google_genai:gemini-2.5-flash   # or anthropic:claude-sonnet-5, openai:gpt-4o-mini, ...
 ```
 
-### 🔌 MCP server
+### MCP server
 
-The same data / risk / RAG capabilities the agent uses internally are also
-published as a standalone **Model Context Protocol** service (`mcp_server/server.py`),
-so any MCP client — Claude Desktop, another agent, an IDE — can call them without
-importing this codebase.
+The same data, risk and RAG functions the agent uses internally are also exposed
+as a standalone Model Context Protocol service (`mcp_server/server.py`), so any
+MCP client — Claude Desktop, another agent, an IDE — can call them without pulling
+in this codebase.
 
 ```bash
 # stdio transport (the default MCP wiring)
@@ -122,9 +128,9 @@ python -m mcp_server.server
 python -m mcp_server.server --transport streamable-http
 ```
 
-Exposed tools: `get_prices`, `compute_risk_metrics`, `list_universe`,
-`target_volatility`, `plan_contributions`, and `retrieve_factsheet`. To register
-it with Claude Desktop, add to `claude_desktop_config.json`:
+It exposes `get_prices`, `compute_risk_metrics`, `list_universe`,
+`target_volatility`, `plan_contributions` and `retrieve_factsheet`. To wire it
+into Claude Desktop, add this to `claude_desktop_config.json`:
 
 ```json
 {
@@ -138,52 +144,51 @@ it with Claude Desktop, add to `claude_desktop_config.json`:
 }
 ```
 
-### 📏 Evaluation harness
+### Evaluation harness
 
-The LLM pipeline is measured, not just written. `eval/` holds a labelled test
-set of chat transcripts → expected `UserProfile` and an **LLM-as-judge** pass
-that scores recommendation explanations on grounding, relevance, clarity and
-safety.
+The LLM side is measured rather than eyeballed. `eval/` holds a labelled set of
+chat transcripts paired with the `UserProfile` they should produce, plus an
+LLM-as-judge pass that grades recommendation explanations on grounding, relevance,
+clarity and safety.
 
 ```bash
 python -m eval.run              # profile-extraction accuracy (per-field + overall)
 python -m eval.run --judge      # + LLM-as-judge over live recommendations
 ```
 
-Extraction hits the configured model once per case; the judge pass runs the full
-advisor graph end-to-end and grades each explanation 1–5. The scoring logic
-(field comparison, aggregation, judge parsing) is pure and unit-tested offline in
-`tests/test_eval.py`, so CI verifies the harness without an API key.
+Extraction hits the model once per case; the judge pass runs the full advisor
+graph end to end and grades each explanation 1–5. The scoring logic itself (field
+comparison, aggregation, judge parsing) is pure and unit-tested, so CI can verify
+the harness without an API key.
 
-## ☁️ Deploying a public demo
+## Deploying a public demo
 
-The repo is deploy-ready for **Streamlit Community Cloud** (or any host that runs
-`streamlit run app.py` from a `requirements.txt`). Three things make a public
-demo robust and cheap to run:
+The repo is ready to deploy on Streamlit Community Cloud (or anything that runs
+`streamlit run app.py` off a `requirements.txt`). Three things make a public demo
+survivable and cheap:
 
-- **Snapshot data (no live network needed).** Yahoo blocks datacenter IPs, so the
-  deployed app loads `data/universe_snapshot.json` — a committed, point-in-time
-  snapshot of the enriched ETF universe — instead of calling `yfinance` on every
-  cold start. Regenerate locally with `python -m data_sources.snapshot`; set
-  `USE_LIVE_DATA=1` locally to prefer live metrics. The app falls back to the
-  snapshot automatically if a live fetch fails.
-- **Bring-your-own-key (BYOK).** The public instance ships **no** shared LLM key,
-  so visitors don't drain the owner's quota. A sidebar panel lets each visitor
-  paste their own key (Google / Anthropic / OpenAI); it stays in their session
-  and is passed straight to the provider, never to a shared env var. Before a key
-  is entered, a committed **example recommendation** (`data/demo_recommendation.json`)
-  is shown so the product is legible with zero setup.
-- **Grounding still works.** `chroma_db/` is gitignored, so the app rebuilds the
-  vector store from the committed factsheets on first boot. A SQLite shim
-  (`rag/_compat.py` + `pysqlite3-binary`, Linux-only) covers hosts whose system
-  SQLite is too old for Chroma.
+- **Snapshot data instead of live calls.** Yahoo blocks datacenter IPs, so the
+  deployed app reads `data/universe_snapshot.json` — a committed snapshot of the
+  enriched ETF universe — rather than hitting `yfinance` on every cold start.
+  Regenerate it locally with `python -m data_sources.snapshot`, or set
+  `USE_LIVE_DATA=1` to prefer live metrics. If a live fetch fails, it falls back
+  to the snapshot on its own.
+- **Bring your own key.** The public instance ships no shared key, so strangers
+  can't burn through the owner's quota. A sidebar panel takes the visitor's own
+  key (Google / Anthropic / OpenAI); it stays in their session and goes straight
+  to the provider, never into a shared env var. Until a key is entered, a saved
+  example recommendation is shown so the app isn't blank.
+- **Grounding survives the deploy.** `chroma_db/` is gitignored, so the app
+  rebuilds the vector store from the committed factsheets on first boot. A small
+  SQLite shim (`rag/_compat.py` + `pysqlite3-binary`, Linux only) covers hosts
+  whose system SQLite is too old for Chroma.
 
-Deploy steps: point Streamlit Community Cloud at `app.py`; it installs from
-`requirements.txt`. Optionally add an owner key under **App → Settings → Secrets**
-(`GOOGLE_API_KEY = "…"`) if you want live chat without BYOK — otherwise leave it
+To deploy: point Streamlit Community Cloud at `app.py` and it installs from
+`requirements.txt`. Add an owner key under App → Settings → Secrets
+(`GOOGLE_API_KEY = "…"`) if you want live chat without BYOK; otherwise leave it
 out and visitors bring their own.
 
-## 🧪 Development
+## Development
 
 ```bash
 pytest            # run the test suite
@@ -191,12 +196,11 @@ ruff check .      # lint
 ruff format .     # format
 ```
 
-## ⚠️ Disclaimer
+## Disclaimer
 
-This is an educational project. It does **not** constitute financial or investment advice.
-No recommendation produced by this software should be acted upon without consulting a
-licensed professional.
+This is an educational project, not financial advice. Don't act on anything it
+produces without talking to a licensed professional first.
 
-## 📄 License
+## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
