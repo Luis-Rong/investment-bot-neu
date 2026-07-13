@@ -6,6 +6,8 @@ categorical order (validated palette); every segment is also labeled with
 name + percentage, so color never carries meaning alone.
 """
 
+import re
+
 import streamlit as st
 
 # Fixed categorical order (colorblind-safe); never re-assigned when funds change.
@@ -84,6 +86,81 @@ def _allocation_chart(allocation: list, opt_by_id: dict):
     )
 
 
+def _passage_attr(passage, name: str, default=None):
+    """Read an attribute whether the passage is a dataclass or a plain dict."""
+    if isinstance(passage, dict):
+        return passage.get(name, default)
+    return getattr(passage, name, default)
+
+
+def _passage_title(passage) -> str:
+    """A human title for a passage — the fund name (with ticker where possible)."""
+    text = _passage_attr(passage, "text", "") or ""
+    # The document's own top-level heading, e.g. "# Invesco QQQ Trust (QQQ)".
+    m = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
+    if m:
+        return m.group(1).strip()
+    # Or the "[Fund Title]" context prefix the ingest step prepends to chunks.
+    m = re.match(r"\s*\[(.+?)\]", text)
+    if m:
+        return m.group(1).strip()
+    ticker = _passage_attr(passage, "ticker")
+    if ticker:
+        return ticker
+    source = _passage_attr(passage, "source", "") or ""
+    return source.rsplit(".", 1)[0] or "Fund factsheet"
+
+
+def _passage_body(text: str, limit: int = 700) -> str:
+    """Passage prose ready to display.
+
+    Strips the retrieval scaffolding (the "[Title]" context prefix and the doc's
+    own "# Title"), softens section headings (## Costs) to bold labels so they
+    don't render as oversized headers inside a card, and — the fix for text that
+    used to cut off mid-word — truncates on a sentence or paragraph boundary.
+    """
+    text = re.sub(r"^\s*\[.+?\]\s*", "", text)  # ingest context prefix
+    text = re.sub(r"^#\s+.+$", "", text, flags=re.MULTILINE)  # doc title heading
+    text = re.sub(r"^#{2,}\s+(.+)$", r"**\1**", text, flags=re.MULTILINE)  # ## → bold
+    text = text.strip()
+
+    if len(text) <= limit:
+        return text
+    window = text[:limit]
+    # Prefer a paragraph break, then a sentence end, then a word boundary.
+    cut = max(window.rfind("\n\n"), window.rfind(". "), window.rfind(".\n"))
+    if cut == -1:
+        cut = window.rfind(" ")
+    if cut == -1:
+        cut = limit - 1
+    return text[: cut + 1].strip() + " …"
+
+
+def _sources_section(sources: list):
+    """The evidence trail: the real factsheet passages behind the fund claims.
+
+    Rendered as an always-visible purpose line plus a collapsed expander with
+    the verbatim passages, each titled by fund and cleanly formatted.
+    """
+    n = len(sources)
+    st.markdown('<div class="mer-section">Grounded in real fund data</div>', unsafe_allow_html=True)
+    st.caption(
+        f"The fund facts above aren't guessed by the AI — each is drawn from a real "
+        f"factsheet in Meridian's library. Below {'is the' if n == 1 else 'are the'} "
+        f"{n} passage{'' if n == 1 else 's'} it cited, quoted word for word."
+    )
+    with st.expander(f"Show the source {'passage' if n == 1 else 'passages'}"):
+        for i, passage in enumerate(sources, 1):
+            title = _passage_title(passage)
+            source = _passage_attr(passage, "source", "") or ""
+            st.markdown(f"**{i}. {title}**")
+            if source:
+                st.caption(f"From {source}")
+            st.markdown(_passage_body(_passage_attr(passage, "text", "") or ""))
+            if i < n:
+                st.divider()
+
+
 def render_recommendation_ui(
     profile: dict,
     allocation: list,
@@ -104,10 +181,7 @@ def render_recommendation_ui(
     st.markdown(f'<div class="mer-card">{explanation_text}</div>', unsafe_allow_html=True)
 
     if sources:
-        with st.expander(f"Sources ({len(sources)} fund-profile passages)"):
-            for i, passage in enumerate(sources, 1):
-                st.markdown(f"**[{i}] {passage.source}**")
-                st.caption(passage.text[:600] + ("…" if len(passage.text) > 600 else ""))
+        _sources_section(sources)
 
     st.caption(
         'Adjust anytime: say *"make it slightly less risky"* or *"make it more risky"* — '
