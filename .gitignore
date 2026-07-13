@@ -26,5 +26,6 @@ chroma_db/
 .DS_Store
 Thumbs.db
 
-# Notes
+# Notes / internal working docs (kept locally, not published)
 WICHTIGE_INFO.txt
+INVESTMENT.md
