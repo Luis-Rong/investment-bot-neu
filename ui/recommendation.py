@@ -28,6 +28,13 @@ def _fmt_pct(value) -> str:
     return f"{value * 100:.1f}%"
 
 
+def _fmt_signed_pct(value) -> str:
+    if value is None or value != value:  # None or NaN
+        return "–"
+    sign = "+" if value >= 0 else "−"
+    return f"{sign}{abs(value) * 100:.1f}%"
+
+
 def _stat_tiles(profile: dict, contributions: dict):
     risk = profile.get("risk")
     risk_label = risk_to_label(int(risk)) if risk is not None else "–"
@@ -161,6 +168,72 @@ def _sources_section(sources: list):
                 st.divider()
 
 
+def _backtest_section(allocation: list, options: list, contributions: dict):
+    """Backtest this exact allocation on real prices — makes the risk tangible.
+
+    Best-effort and self-contained: loads the committed month-end price history
+    and skips silently if it's unavailable or too short, so it never breaks the
+    page. The monthly savings plan isn't modeled — this illustrates the lump
+    sum's historical path, not a full contribution schedule.
+    """
+    if not options:
+        return
+    from data_sources.price_history import history_exists, history_meta, load_history
+    from logic.backtest import run_backtest
+
+    if not history_exists():
+        return
+    initial = float(contributions.get("one_time_eur") or 0) or 10000.0
+    try:
+        result = run_backtest(allocation, options, load_history(), initial=initial)
+    except Exception:
+        return
+    if result is None or result.months < 6:
+        return
+
+    import pandas as pd
+
+    years = result.months / 12
+    st.markdown(
+        '<div class="mer-section">How this mix would have performed</div>',
+        unsafe_allow_html=True,
+    )
+    chart_df = pd.DataFrame(
+        {"Portfolio value (€)": result.values},
+        index=pd.to_datetime(result.dates),
+    )
+    st.line_chart(chart_df, color="#2a78d6", height=220)
+
+    tiles = f"""
+    <div class="mer-tiles">
+        <div class="mer-tile">
+            <div class="label">Total return</div>
+            <div class="value">{_fmt_signed_pct(result.total_return)}</div>
+            <div class="sub">over ~{years:.0f} years</div>
+        </div>
+        <div class="mer-tile">
+            <div class="label">Annualized</div>
+            <div class="value">{_fmt_signed_pct(result.annual_return)}</div>
+            <div class="sub">per year</div>
+        </div>
+        <div class="mer-tile">
+            <div class="label">Worst drawdown</div>
+            <div class="value">{_fmt_signed_pct(result.max_drawdown)}</div>
+            <div class="sub">peak to trough</div>
+        </div>
+    </div>
+    """
+    st.markdown(tiles, unsafe_allow_html=True)
+
+    as_of = history_meta().get("as_of")
+    st.caption(
+        f"Hypothetical: {result.initial:,.0f} € put into this exact mix ~{years:.0f} "
+        f"years ago would be about {result.final:,.0f} € now, using month-end prices"
+        f"{f' (as of {as_of})' if as_of else ''}. Past performance is not a forecast — "
+        "it's here to make the risk tangible, not to predict future returns."
+    )
+
+
 def render_recommendation_ui(
     profile: dict,
     allocation: list,
@@ -176,6 +249,8 @@ def render_recommendation_ui(
 
     st.markdown('<div class="mer-section">Suggested portfolio</div>', unsafe_allow_html=True)
     _allocation_chart(allocation, opt_by_id)
+
+    _backtest_section(allocation, options or [], contributions)
 
     st.markdown('<div class="mer-section">Why this portfolio</div>', unsafe_allow_html=True)
     st.markdown(f'<div class="mer-card">{explanation_text}</div>', unsafe_allow_html=True)
