@@ -1,0 +1,56 @@
+# Mirror this repo to a Hugging Face Space on every push to main.
+#
+# One-time setup (until done, this workflow just no-ops — it won't fail):
+#   1. Create a Streamlit Space:  https://huggingface.co/new-space
+#   2. Create a WRITE token:      https://huggingface.co/settings/tokens
+#   3. This repo → Settings → Secrets and variables → Actions →
+#      add a secret HF_TOKEN with that token.
+#   4. Set HF_USER / HF_SPACE below to your Space's owner and name.
+#
+# The Space's card comes from README_HF.md (which carries the required metadata
+# header), copied over README.md at push time — so the GitHub README stays clean.
+name: Sync to Hugging Face Space
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  HF_USER: Luis-Rong # <-- your Hugging Face username (may differ from GitHub)
+  HF_SPACE: meridian-portfolio-advisor # <-- your Space name
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only run once HF_TOKEN is configured
+        id: guard
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "HF_TOKEN not set — skipping (configure it to enable syncing)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.guard.outputs.run == 'true'
+        with:
+          fetch-depth: 1
+
+      - name: Push to the Space
+        if: steps.guard.outputs.run == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cp README_HF.md README.md
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add README.md
+          git commit -m "Deploy to Hugging Face Space" || true
+          git push --force \
+            "https://${HF_USER}:${HF_TOKEN}@huggingface.co/spaces/${HF_USER}/${HF_SPACE}" \
+            HEAD:main

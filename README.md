@@ -1,5 +1,7 @@
 # Agentic RAG Robo-Advisor
 
+[![CI](https://github.com/Luis-Rong/investment-bot-neu/actions/workflows/ci.yml/badge.svg)](https://github.com/Luis-Rong/investment-bot-neu/actions/workflows/ci.yml)
+
 A chat-based investment advisor. You talk through your goal and how much risk
 you're comfortable with, and it builds an ETF portfolio for you — with the
 reasoning tied back to real fund data instead of made up by the model.
@@ -7,12 +9,19 @@ reasoning tied back to real fund data instead of made up by the model.
 The idea is a split brain: the language model runs the conversation, but the
 parts that actually matter for money — scoring, allocation, the risk maths — are
 plain, deterministic Python that's unit-tested. Every recommendation also cites
-the fund factsheets it leaned on, so you can see where a number came from.
+the fund factsheets it leaned on, and shows how the mix would have performed
+historically, so you can see where a number came from.
 
 It started as a bachelor-thesis prototype. I rebuilt it into a proper agentic RAG
 application to work through the architecture from the
 [IBM RAG and Agentic AI Professional Certificate](https://www.coursera.org/professional-certificates/ibm-rag-and-agentic-ai)
 on a real use case rather than a toy one.
+
+**Live demo:** _once deployed, add your Hugging Face Space link here._
+
+<!-- Add a screenshot or GIF of the chat → recommendation flow and uncomment:
+![Meridian](docs/screenshot.png)
+-->
 
 ## What it does
 
@@ -25,6 +34,9 @@ on a real use case rather than a toy one.
 - Handles each turn through a LangGraph state machine that routes the query,
   fetches data or documents as needed, and runs one self-check pass before it
   answers.
+- Backtests the recommended mix on real month-end prices and shows the growth
+  curve, total return and worst drawdown — past performance, clearly labelled as
+  not a forecast.
 - Takes follow-ups in plain language ("make it a bit less risky") and re-balances.
 
 ## Architecture
@@ -161,6 +173,19 @@ graph end to end and grades each explanation 1–5. The scoring logic itself (fi
 comparison, aggregation, judge parsing) is pure and unit-tested, so CI can verify
 the harness without an API key.
 
+Latest run (`gemini-3.1-flash-lite`, 8 extraction cases + 6 full recommendations):
+
+| Metric | Score |
+|---|---|
+| Profile extraction — overall field accuracy | 96.9% |
+| Profile extraction — fully-correct cases | 75.0% |
+| LLM-as-judge — overall (1–5) | 4.83 |
+| — grounding / relevance / clarity / safety | 5.00 / 4.50 / 5.00 / 4.83 |
+
+The remaining extraction misses are on the free-text `goal` field (a scoring
+nuance, not a wrong parse); the judge mostly docks `relevance` where a portfolio
+could hew even closer to a stated risk level.
+
 ## Deploying a public demo
 
 The repo is ready to deploy on Streamlit Community Cloud (or anything that runs
@@ -187,6 +212,12 @@ To deploy: point Streamlit Community Cloud at `app.py` and it installs from
 `requirements.txt`. Add an owner key under App → Settings → Secrets
 (`GOOGLE_API_KEY = "…"`) if you want live chat without BYOK; otherwise leave it
 out and visitors bring their own.
+
+**Hugging Face Spaces** works too, and its free tier has more memory. Create a
+Streamlit Space, then either push this repo to it manually or let the included
+`.github/workflows/sync-to-hf.yml` mirror it on every push (the Space card lives
+in `README_HF.md`). The same snapshot / BYOK / SQLite-shim setup carries over
+unchanged.
 
 ## Development
 
