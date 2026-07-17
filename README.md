@@ -17,7 +17,7 @@ application to work through the architecture from the
 [IBM RAG and Agentic AI Professional Certificate](https://www.coursera.org/professional-certificates/ibm-rag-and-agentic-ai)
 on a real use case rather than a toy one.
 
-**Live demo:** _once deployed, add your Hugging Face Space link here._
+**Live demo:** [huggingface.co/spaces/Luis-Rong/meridian-portfolio-advisor](https://huggingface.co/spaces/Luis-Rong/meridian-portfolio-advisor)
 
 <!-- Add a screenshot or GIF of the chat → recommendation flow and uncomment:
 ![Meridian](docs/screenshot.png)
