@@ -50,10 +50,23 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           cp README_HF.md README.md
+
+          # HF's git backend rejects raw binary blobs (the chat avatar PNGs)
+          # outside Git LFS/Xet. They're already committed as plain blobs on
+          # GitHub, so adding a .gitattributes rule alone wouldn't convert
+          # them. Instead, rebuild the current state as a single fresh commit
+          # so every file passes through the LFS filter once. This only
+          # rewrites the disposable runner checkout, not the GitHub repo.
+          git lfs install --local
+          git lfs track "*.png"
+
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git add README.md
-          git commit -m "Deploy to Hugging Face Space" || true
+
+          git checkout --orphan hf-deploy
+          git rm -rf --cached . > /dev/null
+          git add -A
+          git commit -m "Deploy to Hugging Face Space"
           git push --force \
             "https://${HF_USER}:${HF_TOKEN}@huggingface.co/spaces/${HF_USER}/${HF_SPACE}" \
-            HEAD:main
+            hf-deploy:main
