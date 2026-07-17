@@ -30,3 +30,9 @@ pypdf>=5.0
 # This wheel is Linux-only (the marker keeps `pip install -r` working on
 # Windows/macOS dev machines, where the stdlib sqlite3 is recent enough).
 pysqlite3-binary>=0.5; sys_platform == "linux"
+
+# --- Gradio entry point (Hugging Face Space) ---
+# `spaces` provides the @spaces.GPU decorator HF's free Gradio-Space tier
+# requires at least one of (see app_gradio.py); it's a no-op off of HF.
+gradio>=6.0
+spaces>=0.30

@@ -15,6 +15,7 @@ Run locally:  python app_gradio.py
 from __future__ import annotations
 
 import gradio as gr
+import spaces
 from dotenv import load_dotenv
 
 from agent.graph import build_advisor_graph
@@ -23,6 +24,22 @@ from llm.model import BYOK_MODEL_CHOICES, get_llm, has_provider_key
 from ui.formatting import format_recommendation_md
 
 load_dotenv()
+
+
+@spaces.GPU(duration=5)
+def _zerogpu_startup_probe():
+    """No-op — this app has no CUDA workload.
+
+    HF's free Gradio-Space tier currently assigns ZeroGPU hardware by default
+    and refuses to start ("No @spaces.GPU function detected during startup")
+    unless at least one function wired into the app carries the decorator.
+    Wiring this into `demo.load()` satisfies that check. Outside a ZeroGPU
+    Space (local dev, other hosts) `spaces.GPU` is a no-op passthrough — see
+    `spaces.zero.decorator._GPU`, which returns the function unmodified unless
+    the `SPACES_ZERO_GPU` env var is set — so this never touches a GPU there.
+    """
+    return None
+
 
 OPTIONS, UNI_META = resolve_universe()
 
@@ -127,6 +144,7 @@ def build_demo() -> gr.Blocks:
             [msg, chatbot, recommendation, model_label, api_key],
             [msg, chatbot, recommendation, panel],
         )
+        demo.load(_zerogpu_startup_probe, inputs=None, outputs=None)
     return demo
 
 

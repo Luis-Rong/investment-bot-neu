@@ -42,8 +42,10 @@ optimize = [
 ]
 # Gradio entry point (app_gradio.py) — the alternative UI used for the Hugging
 # Face Space. On the Space itself, Gradio comes from the SDK version instead.
+# `spaces` is the @spaces.GPU decorator HF's free tier requires (no-op off HF).
 gradio = [
     "gradio>=6.0",
+    "spaces>=0.30",
 ]
 dev = [
     "pytest>=8.0",
