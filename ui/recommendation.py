@@ -199,7 +199,8 @@ def _backtest_section(allocation: list, options: list, contributions: dict):
         unsafe_allow_html=True,
     )
     chart_df = pd.DataFrame(
-        {"Portfolio value (€)": result.values},
+        # Round so the hover tooltip reads e.g. 10215.01, not 10215.0143493.
+        {"Portfolio value (€)": [round(v, 2) for v in result.values]},
         index=pd.to_datetime(result.dates),
     )
     st.line_chart(chart_df, color="#2a78d6", height=220)

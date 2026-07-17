@@ -77,7 +77,9 @@ def backtest_frame(rec: dict, options: list):
         return None
     if r is None or r.months < 6:
         return None
-    return pd.DataFrame({"date": pd.to_datetime(r.dates), "value": r.values})
+    # Round the plotted values so the hover tooltip reads e.g. 10215.01, not
+    # 10215.0143493 (the growth stats are computed separately and stay precise).
+    return pd.DataFrame({"date": pd.to_datetime(r.dates), "value": [round(v, 2) for v in r.values]})
 
 
 def format_recommendation_md(rec: dict, options: list) -> str:
