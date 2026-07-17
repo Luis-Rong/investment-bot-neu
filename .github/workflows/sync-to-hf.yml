@@ -1,7 +1,8 @@
 # Mirror this repo to a Hugging Face Space on every push to main.
 #
 # One-time setup (until done, this workflow just no-ops — it won't fail):
-#   1. Create a Streamlit Space:  https://huggingface.co/new-space
+#   1. Create a Gradio Space:     https://huggingface.co/new-space
+#      (SDK: Gradio — free tier; it runs app_gradio.py per README_HF.md)
 #   2. Create a WRITE token:      https://huggingface.co/settings/tokens
 #   3. This repo → Settings → Secrets and variables → Actions →
 #      add a secret HF_TOKEN with that token.

@@ -40,6 +40,11 @@ mcp = [
 optimize = [
     "PyPortfolioOpt>=1.5",
 ]
+# Gradio entry point (app_gradio.py) — the alternative UI used for the Hugging
+# Face Space. On the Space itself, Gradio comes from the SDK version instead.
+gradio = [
+    "gradio>=6.0",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",

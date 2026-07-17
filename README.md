@@ -213,11 +213,14 @@ To deploy: point Streamlit Community Cloud at `app.py` and it installs from
 (`GOOGLE_API_KEY = "…"`) if you want live chat without BYOK; otherwise leave it
 out and visitors bring their own.
 
-**Hugging Face Spaces** works too, and its free tier has more memory. Create a
-Streamlit Space, then either push this repo to it manually or let the included
-`.github/workflows/sync-to-hf.yml` mirror it on every push (the Space card lives
-in `README_HF.md`). The same snapshot / BYOK / SQLite-shim setup carries over
-unchanged.
+**Hugging Face Spaces** works too, and its free tier has more memory. HF's free
+tier hosts Gradio (not Streamlit) Spaces, so `app_gradio.py` wraps the same
+advisor — chat, grounded recommendation, backtest — in Gradio. Create a Gradio
+Space and let the included `.github/workflows/sync-to-hf.yml` mirror this repo to
+it on every push; `README_HF.md` carries the Space card and becomes the Space's
+README, so the GitHub README stays clean. The snapshot / BYOK / SQLite-shim setup
+carries over unchanged. Run it locally with `pip install -e ".[gradio]"` then
+`python app_gradio.py`.
 
 ## Development
 
