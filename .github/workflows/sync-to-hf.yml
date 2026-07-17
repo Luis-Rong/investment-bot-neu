@@ -40,7 +40,9 @@ jobs:
       - uses: actions/checkout@v5
         if: steps.guard.outputs.run == 'true'
         with:
-          fetch-depth: 1
+          # Full history: a shallow clone (fetch-depth: 1) makes HF reject the
+          # force-push with "shallow update not allowed".
+          fetch-depth: 0
 
       - name: Push to the Space
         if: steps.guard.outputs.run == 'true'
