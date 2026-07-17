@@ -7,7 +7,19 @@ same content (plan, allocation, backtest, explanation, sources) in Markdown.
 
 from __future__ import annotations
 
-from ui.recommendation import _passage_attr, _passage_body, _passage_title, risk_to_label
+from ui.recommendation import (
+    SERIES_COLORS,
+    _passage_attr,
+    _passage_body,
+    _passage_title,
+    risk_to_label,
+)
+
+
+def _fmt_pct(value) -> str:
+    if value is None or value != value:  # None or NaN
+        return "–"
+    return f"{value * 100:.1f}%"
 
 
 def _fmt_signed_pct(value) -> str:
@@ -97,6 +109,96 @@ def format_recommendation_md(rec: dict, options: list) -> str:
         lines.append(f"| {item['percentage']}% | {item['name']}{ticker} | {ter} | {vol_s} |")
 
     lines.append(_backtest_md(allocation, options, contributions))
+
+    if rec.get("explanation"):
+        lines += ["### Why this portfolio", rec["explanation"], ""]
+
+    sources = rec.get("sources") or []
+    if sources:
+        lines.append("### Sources — real fund-factsheet passages")
+        for i, p in enumerate(sources, 1):
+            body = _passage_body(_passage_attr(p, "text", "") or "", limit=350)
+            lines.append(f"**{i}. {_passage_title(p)}**\n\n{body}\n")
+
+    lines.append('*Say "make it less risky" (or riskier) to adjust.*')
+    return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- #
+# Split renderers for the Gradio layout: an HTML plan panel (stat tiles +
+# colored allocation bar, matching the Streamlit look via the shared mer-* CSS)
+# and a Markdown block for the backtest summary, rationale and sources (so the
+# LLM's markdown renders). The native backtest chart sits between them.
+# --------------------------------------------------------------------------- #
+def format_plan_html(rec: dict, options: list) -> str:
+    """Stat tiles + allocation bar as one HTML string (uses the mer-* classes)."""
+    if not rec:
+        return ""
+    profile = rec.get("profile") or {}
+    allocation = rec.get("allocation") or []
+    contributions = rec.get("contributions") or {}
+    opt_by_id = {o["id"]: o for o in options}
+
+    risk = profile.get("risk")
+    risk_label = risk_to_label(int(risk)) if risk is not None else "–"
+    horizon = profile.get("horizon_years")
+    sub = f"{horizon}-year horizon" if horizon else ""
+
+    tiles = (
+        '<div class="mer-section">Your personalized plan</div>'
+        '<div class="mer-tiles">'
+        f'<div class="mer-tile"><div class="label">One-time today</div>'
+        f'<div class="value">{contributions.get("one_time_eur", 0):,} &euro;</div></div>'
+        f'<div class="mer-tile"><div class="label">Monthly plan</div>'
+        f'<div class="value">{contributions.get("monthly_plan_eur", 0):,} &euro;</div></div>'
+        f'<div class="mer-tile"><div class="label">Risk style</div>'
+        f'<div class="value">{risk_label}</div><div class="sub">{sub}</div></div>'
+        "</div>"
+    )
+
+    segments = "".join(
+        f'<div class="mer-alloc-seg" style="width:{item["percentage"]}%;'
+        f'background:{SERIES_COLORS[i % len(SERIES_COLORS)]};"></div>'
+        for i, item in enumerate(allocation)
+    )
+    rows = []
+    for i, item in enumerate(allocation):
+        opt = opt_by_id.get(item["id"], {})
+        ticker = opt.get("ticker", "")
+        meta_bits = []
+        if opt.get("ter") is not None:
+            meta_bits.append(f"TER {opt['ter']:.2f}%")
+        if opt.get("volatility") is not None:
+            meta_bits.append(f"Vol {_fmt_pct(opt['volatility'])}")
+        if opt.get("sharpe") is not None and opt["sharpe"] == opt["sharpe"]:
+            meta_bits.append(f"Sharpe {opt['sharpe']:.2f}")
+        meta = " &middot; ".join(meta_bits)
+        rows.append(
+            '<div class="mer-legend-row">'
+            f'<span class="mer-dot" style="background:{SERIES_COLORS[i % len(SERIES_COLORS)]};"></span>'
+            f'<span class="mer-legend-pct">{item["percentage"]}%</span>'
+            f'<span class="mer-legend-name">{item["name"]}{f" ({ticker})" if ticker else ""}</span>'
+            f'<span class="mer-legend-meta">{meta}</span>'
+            "</div>"
+        )
+    alloc = (
+        '<div class="mer-section">Suggested portfolio</div>'
+        f'<div class="mer-card"><div class="mer-alloc-bar">{segments}</div>{"".join(rows)}</div>'
+    )
+    return tiles + alloc
+
+
+def format_explanation_md(rec: dict, options: list) -> str:
+    """Backtest summary + rationale + sources as Markdown (renders LLM markdown)."""
+    if not rec:
+        return ""
+    allocation = rec.get("allocation") or []
+    contributions = rec.get("contributions") or {}
+    lines: list[str] = []
+
+    bt = _backtest_md(allocation, options, contributions)
+    if bt:
+        lines.append(bt)
 
     if rec.get("explanation"):
         lines += ["### Why this portfolio", rec["explanation"], ""]
