@@ -1,6 +1,31 @@
 import math
 
-from logic.scoring import risk_to_target_volatility, score_options
+from logic.scoring import horizon_constraint_note, risk_to_target_volatility, score_options
+
+_HCN_OPTIONS = [
+    {"id": "EQ", "name": "Stock ETF", "asset_class": "equity", "horizon_min": 5},
+    {"id": "BD", "name": "Bond ETF", "asset_class": "bond", "horizon_min": 1},
+]
+
+
+def test_horizon_note_fires_when_high_risk_short_horizon_excludes_all_equity():
+    note = horizon_constraint_note({"risk": 10, "horizon_years": 4}, _HCN_OPTIONS)
+    assert note is not None
+    assert "5-year" in note and "4-year" in note
+
+
+def test_horizon_note_silent_when_equity_reachable():
+    # 5-year horizon reaches the equity fund -> no binding conflict.
+    assert horizon_constraint_note({"risk": 10, "horizon_years": 5}, _HCN_OPTIONS) is None
+
+
+def test_horizon_note_silent_for_low_risk_appetite():
+    # A conservative user isn't in conflict even if equities are out of reach.
+    assert horizon_constraint_note({"risk": 3, "horizon_years": 4}, _HCN_OPTIONS) is None
+
+
+def test_horizon_note_handles_missing_fields():
+    assert horizon_constraint_note({}, _HCN_OPTIONS) is None
 
 # Options carry live-computed `volatility` + `sharpe` plus static
 # `ter`/`horizon_min`/`esg` metadata.

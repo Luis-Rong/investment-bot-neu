@@ -21,9 +21,29 @@ from dotenv import load_dotenv
 from agent.graph import build_advisor_graph
 from data_sources.universe import resolve_universe
 from llm.model import BYOK_MODEL_CHOICES, get_llm, has_provider_key
-from ui.formatting import format_recommendation_md
+from ui.formatting import backtest_frame, format_recommendation_md
 
 load_dotenv()
+
+# A calm, branded look so the Space doesn't ship the bare default Gradio theme.
+THEME = gr.themes.Soft(
+    primary_hue=gr.themes.colors.blue,
+    neutral_hue=gr.themes.colors.slate,
+    font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"],
+).set(
+    body_background_fill="#f7f7f5",
+    block_background_fill="#ffffff",
+    block_border_width="1px",
+    block_shadow="0 1px 2px rgba(11,11,11,0.05)",
+    block_radius="12px",
+)
+
+CSS = """
+.gradio-container {max-width: 920px !important; margin: 0 auto;}
+#mer-header h1 {font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.1rem;}
+#mer-header p {color: #52514e; margin-top: 0;}
+footer {display: none !important;}
+"""
 
 
 @spaces.GPU(duration=5)
@@ -73,14 +93,14 @@ def respond(message, chat_history, recommendation, model_label, api_key):
     """One conversational turn through the advisor graph."""
     message = (message or "").strip()
     if not message:
-        return "", chat_history, recommendation, gr.update()
+        return "", chat_history, recommendation, gr.update(), gr.update()
 
     chat_history = list(chat_history or [])
     chat_history.append({"role": "user", "content": message})
 
     if not (api_key or "").strip() and not has_provider_key():
         chat_history.append({"role": "assistant", "content": NO_KEY_MESSAGE})
-        return "", chat_history, recommendation, gr.update()
+        return "", chat_history, recommendation, gr.update(), gr.update()
 
     # The graph reads plain {role, content} dicts; skip the seeded welcome line.
     messages = [m for m in chat_history if m["content"] != WELCOME]
@@ -92,27 +112,32 @@ def respond(message, chat_history, recommendation, model_label, api_key):
         chat_history.append(
             {"role": "assistant", "content": f"That didn't work: `{exc}` — check your key/model."}
         )
-        return "", chat_history, recommendation, gr.update()
+        return "", chat_history, recommendation, gr.update(), gr.update()
 
     chat_history.append({"role": "assistant", "content": result.get("assistant_message", "...")})
     if result.get("recommendation"):
         recommendation = result["recommendation"]
 
-    panel = (
-        gr.update(value=format_recommendation_md(recommendation, OPTIONS), visible=True)
-        if recommendation
-        else gr.update()
-    )
-    return "", chat_history, recommendation, panel
+    if recommendation:
+        panel = gr.update(value=format_recommendation_md(recommendation, OPTIONS), visible=True)
+        frame = backtest_frame(recommendation, OPTIONS)
+        plot = gr.update(value=frame, visible=True) if frame is not None else gr.update()
+    else:
+        panel = gr.update()
+        plot = gr.update()
+    return "", chat_history, recommendation, panel, plot
 
 
 def build_demo() -> gr.Blocks:
+    # NB: `theme`/`css` are applied in `launch()` below — Gradio 6.0 moved them
+    # off the Blocks constructor (passing them here is silently ignored).
     with gr.Blocks(title="Meridian — AI Portfolio Advisor") as demo:
         gr.Markdown(
             "# Meridian — AI portfolio advisor\n"
             "Chat about your goal and risk comfort; get an ETF portfolio grounded "
             "in real fund data, with a historical backtest. *Prototype — not "
-            "financial advice.*"
+            "financial advice.*",
+            elem_id="mer-header",
         )
 
         recommendation = gr.State(None)
@@ -138,15 +163,24 @@ def build_demo() -> gr.Blocks:
             api_key = gr.Textbox(label="API key", type="password", placeholder="AIza… / sk-…")
 
         panel = gr.Markdown(visible=False)
+        plot = gr.LinePlot(
+            x="date",
+            y="value",
+            title="How this mix would have performed",
+            x_title="",
+            y_title="Portfolio value (€)",
+            height=260,
+            visible=False,
+        )
 
         msg.submit(
             respond,
             [msg, chatbot, recommendation, model_label, api_key],
-            [msg, chatbot, recommendation, panel],
+            [msg, chatbot, recommendation, panel, plot],
         )
         demo.load(_zerogpu_startup_probe, inputs=None, outputs=None)
     return demo
 
 
 if __name__ == "__main__":
-    build_demo().launch()
+    build_demo().launch(theme=THEME, css=CSS)

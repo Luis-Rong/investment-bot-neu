@@ -50,7 +50,7 @@ from llm.prompts import (
     get_router_prompt,
 )
 from logic.profile import UserProfile, missing_fields
-from logic.scoring import risk_to_target_volatility
+from logic.scoring import horizon_constraint_note, risk_to_target_volatility
 from rag.retriever import format_evidence, retrieve, store_exists
 
 MAX_REFLECTIONS = 1  # at most one explanation revision, to bound the loop
@@ -328,6 +328,12 @@ Contribution plan:
 EVIDENCE (fund-profile passages — cite these by number for any fund claim):
 {format_evidence(evidence)}
 """
+        # If a short horizon forced out all equities despite a high risk appetite,
+        # make the model own that trade-off instead of overselling the mix.
+        note = horizon_constraint_note(profile, state["options"])
+        if note:
+            llm_input += f"\n{note}\n"
+
         # On a reflection revision, feed the critique back in (Reflexion).
         if critique and critique.get("feedback"):
             llm_input += (

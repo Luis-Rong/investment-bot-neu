@@ -77,6 +77,46 @@ def _fee_score(ter: float) -> float:
     return max(0.0, 10.0 - ter * 10.0)
 
 
+# Risk appetite (1..10) at or above which we treat the user as wanting growth,
+# so a horizon that forecloses all equities is worth flagging as a trade-off.
+HIGH_RISK_THRESHOLD = 7
+
+
+def horizon_constraint_note(profile, options):
+    """Explain a binding horizon constraint, or return None.
+
+    When a user asks for high risk but their horizon is shorter than the minimum
+    holding period of *every* equity fund, the portfolio is forced into
+    bonds/commodities no matter how aggressive they are. We keep that gate (a
+    short horizon genuinely limits prudent risk) but surface the trade-off
+    honestly instead of silently overriding the stated appetite. The returned
+    string is a note for the explanation model, not user-facing copy.
+    """
+    horizon = profile.get("horizon_years")
+    risk = profile.get("risk")
+    if horizon is None or risk is None or int(risk) < HIGH_RISK_THRESHOLD:
+        return None
+
+    equities = [o for o in options if o.get("asset_class") == "equity"]
+    if not equities:
+        return None
+    included = [o for o in equities if horizon >= o.get("horizon_min", 0)]
+    if included:
+        return None  # at least some equity is reachable — no hard conflict
+
+    shortest = min(o.get("horizon_min", 0) for o in equities)
+    return (
+        f"IMPORTANT trade-off to explain honestly: the user asked for high risk "
+        f"(risk {int(risk)}/10), but their {horizon}-year horizon is shorter than the "
+        f"{shortest}-year minimum holding period of every equity fund available, so "
+        f"equities were excluded and the portfolio is necessarily bond- and "
+        f"commodity-heavy. Do NOT pretend this is an aggressive equity portfolio. "
+        f"Explain plainly: over only {horizon} years there isn't time to ride out an "
+        f"equity drawdown, so a shorter horizon caps how much risk is prudent "
+        f"regardless of appetite. A longer horizon would unlock stock funds."
+    )
+
+
 def score_options(options, user):
     target_vol = risk_to_target_volatility(user["risk"])
     wants_esg = user.get("esg") is True

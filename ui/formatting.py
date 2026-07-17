@@ -41,6 +41,33 @@ def _backtest_md(allocation, options, contributions) -> str:
     )
 
 
+def backtest_frame(rec: dict, options: list):
+    """The backtest growth curve as a tidy DataFrame for plotting, or None.
+
+    Mirrors `_backtest_md`'s data path (committed month-end history, same
+    lump-sum assumption) but returns the point series instead of prose, so the
+    Gradio UI can draw the curve the Streamlit app already shows. Best-effort:
+    returns None if history is missing, too short, or anything goes wrong.
+    """
+    try:
+        import pandas as pd
+
+        from data_sources.price_history import history_exists, load_history
+        from logic.backtest import run_backtest
+
+        if not rec or not history_exists():
+            return None
+        allocation = rec.get("allocation") or []
+        contributions = rec.get("contributions") or {}
+        initial = float(contributions.get("one_time_eur") or 0) or 10000.0
+        r = run_backtest(allocation, options, load_history(), initial=initial)
+    except Exception:
+        return None
+    if r is None or r.months < 6:
+        return None
+    return pd.DataFrame({"date": pd.to_datetime(r.dates), "value": r.values})
+
+
 def format_recommendation_md(rec: dict, options: list) -> str:
     """The full recommendation panel as one Markdown string."""
     if not rec:
