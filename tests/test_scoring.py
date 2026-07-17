@@ -27,6 +27,7 @@ def test_horizon_note_silent_for_low_risk_appetite():
 def test_horizon_note_handles_missing_fields():
     assert horizon_constraint_note({}, _HCN_OPTIONS) is None
 
+
 # Options carry live-computed `volatility` + `sharpe` plus static
 # `ter`/`horizon_min`/`esg` metadata.
 OPTIONS = [
